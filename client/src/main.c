@@ -29,13 +29,11 @@ int setup_socket() {
     return sock_fd;
 }
 
-
-void strip_string(char* str) {
+void strip_whitespace(char* str) {
     if (str == NULL) return;
     size_t len = strlen(str);
     if (len > 0 && str[len -1] == ' ') str[len -1] = '\0';
 }
-
 
 int send_message(int sock_fd, const char* msg) {
     ssize_t msg_size = strlen(msg);
@@ -46,22 +44,20 @@ int send_message(int sock_fd, const char* msg) {
     return 0;
 }
 
-
-void cleanup_and_shutdown(int sock_fd, int exit_code) {
-    close(sock_fd);
-    exit(exit_code);
-}
-
-
 ssize_t receive_message(int sock_fd, char* response_buffer, size_t max_len) {
     ssize_t bytes_received = recv(sock_fd, response_buffer, max_len -1, 0);
     if (bytes_received == -1) {
         return -1;
     } else {
         response_buffer[bytes_received] = '\0';
-        strip_string(response_buffer);
+        strip_whitespace(response_buffer);
     }
     return bytes_received;
+}
+
+void cleanup_and_shutdown(int sock_fd, int exit_code) {
+    close(sock_fd);
+    exit(exit_code);
 }
 
 
@@ -79,17 +75,17 @@ int main(int argc, char** argv) {
         strncat(buffer, argv[i], BUFFER_SIZE - strlen(buffer) - 1);
         strncat(buffer, " ", BUFFER_SIZE - strlen(buffer) - 1);
     };
-    strip_string(buffer);
+    strip_whitespace(buffer);
     
     // send the command to the daemon
-    if (send_message(sock_fd, buffer) != 0) {
+    if (send_message(sock_fd, buffer) != 0)
         cleanup_and_shutdown(sock_fd, 1);
-    }
+
     
     // wait for the response
-    if (receive_message(sock_fd, buffer, BUFFER_SIZE) == -1) {
+    if (receive_message(sock_fd, buffer, BUFFER_SIZE) == -1)
         cleanup_and_shutdown(sock_fd, 1);
-    }
+    
 
     // print response
     printf("%s\n", buffer);
