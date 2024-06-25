@@ -6,25 +6,26 @@
 
 
 #define SOCKET_PATH "/tmp/abyss_watcher.sock"
-#define CLIENT_SKIP_PRINT_CODE "!cspc"
 #define BUFFER_SIZE 1024
 
+#define CODE_STOP "stop"
+#define CODE_CLIENT_IGNORE_MESSAGE "ignore"
 
 int setup_socket() {
-    int sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sock_fd == -1) {
-        fprintf(stderr, "failed to create socket\n");
-        exit(1);
+    int sock_fd;
+    if ((sock_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+        perror("socket");
+        return -1;
     }
 
-    struct sockaddr_un address;
-    memset(&address, 0, sizeof(struct sockaddr_un));   
-    address.sun_family = AF_UNIX;
-    strcpy(address.sun_path, SOCKET_PATH);
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(struct sockaddr_un));   
+    addr.sun_family = AF_UNIX;
+    strcpy(addr.sun_path, SOCKET_PATH);
 
-    if (connect(sock_fd, (struct sockaddr *)&address, sizeof(struct sockaddr_un)) == -1) {
-        fprintf(stderr, "error: failed to connect to %s\n", SOCKET_PATH);
-        exit(1);
+    if (connect(sock_fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
+        perror("connect");
+        return -1;
     }
     return sock_fd;
 }
@@ -60,13 +61,16 @@ void cleanup_and_shutdown(int sock_fd, int exit_code) {
     exit(exit_code);
 }
 
-
 int main(int argc, char** argv) {
     if (argc <= 1) {
         printf("usage: abyssctl <command>\n");
         exit(0);
     }
-    int sock_fd = setup_socket();
+    int sock_fd;
+    if ((sock_fd = setup_socket()) == -1) {
+        fprintf(stderr, "failed to connect %s\n", SOCKET_PATH);
+        cleanup_and_shutdown(sock_fd, 0);
+    }
 
     char buffer[BUFFER_SIZE] = ""; // used for sending and then receiving
     
@@ -78,17 +82,16 @@ int main(int argc, char** argv) {
     strip_whitespace(buffer);
     
     // send the command to the daemon
-    if (send_message(sock_fd, buffer) != 0)
+    if (send_message(sock_fd, buffer) != 0) {
         cleanup_and_shutdown(sock_fd, 1);
-
-    
+    }
     // wait for the response
-    if (receive_message(sock_fd, buffer, BUFFER_SIZE) == -1)
+    if (receive_message(sock_fd, buffer, BUFFER_SIZE) == -1) {
         cleanup_and_shutdown(sock_fd, 1);
-    
-
+    }
     // print response
-    printf("%s\n", buffer);
+    printf("%s\n",buffer);
+    
     cleanup_and_shutdown(sock_fd, 0);
     return 0;
 }
