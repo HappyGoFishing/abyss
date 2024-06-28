@@ -6,7 +6,7 @@
 
 #include "../shared/util.h"
 
-#define SOCKET_PATH "/tmp/abyss_watcher.sock"
+#define SOCKET_PATH "/tmp/abyss.sock"
 #define BUFFER_SIZE 1024
 
 int setup_socket() {

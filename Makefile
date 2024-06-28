@@ -1,14 +1,14 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -Wextra
 
-SHARED_SRC = src/shared/*.c
-CLIENT_SRC = src/client/*.c
-DAEMON_SRC = src/daemon/*.c
+SHARED_SRC := $(shell find src/shared -name "*.c") 
+CLIENT_SRC := $(shell find src/client -name "*.c")
+DAEMON_SRC := $(shell find src/daemon -name "*.c")
 
 BIN_DIR = bin
 
-DAEMON_BIN_NAME = daemon
-CLIENT_BIN_NAME = client
+DAEMON_BIN_NAME = abyssd
+CLIENT_BIN_NAME = abyssctl
 
 default:
 	make client
