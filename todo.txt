@@ -1,0 +1,5 @@
+1. none blocking client with select(). #done
+2. split message command into mulitple strings. #done
+3. read the toml file #done
+4. managing services.
+5. store running service IDs via their PIDs and metadata from TOML.

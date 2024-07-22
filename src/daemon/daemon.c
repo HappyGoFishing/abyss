@@ -1,21 +1,22 @@
 #include <fcntl.h>
+#include <pthread.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include "../shared/util.h"
 #include "service.h"
 
 #define SOCKET_PATH "/tmp/abyss.sock"
 #define BUFFER_SIZE 1024
-#define COMMAND_LIST_MAX_SIZE 2
+#define MAX_COMMAND_LIST_SIZE 2
 
 #define TOML_DIR_PATH "./"
+
 static bool running = false;
 
 int setup_socket() {
@@ -57,7 +58,8 @@ int main(void) {
     if (sockfd == -1) {
         fprintf(stderr, "failed to bind socket %s\n", SOCKET_PATH);
         exit(1);
-    } else printf("bound socket, listening on: %s\n", SOCKET_PATH);
+    } else
+        printf("bound socket, listening on: %s\n", SOCKET_PATH);
 
     fd_set read_fds;
     int max_fd = sockfd + 1;
@@ -84,39 +86,35 @@ int main(void) {
             } else {
                 receive_message(clientfd, buffer, BUFFER_SIZE);
                 // split the command into an array of strings
-                char* token;
-                char* the_rest = buffer;
-                int i = 0; 
-                char command_list[COMMAND_LIST_MAX_SIZE][BUFFER_SIZE];
-
-                while ((token = strtok_r(the_rest, " ", &the_rest))) {
+                char *token;
+                char *save_ptr = buffer;
+                char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
+                int i = 0;
+                while ((token = strtok_r(save_ptr, " ", &save_ptr))) {
                     printf("token[%i]: %s\n", i, token);
                     strcpy(command_list[i], token);
                     i++;
                 }
-                //for (int i = 0; i < COMMAND_LIST_MAX_SIZE; i++) printf("command_list[%i]: %s\n", i, command_list[i]);
-                
+
                 if (!strcmp(command_list[0], "stop")) {
                     printf("told to stop by client\n");
                     send_message(clientfd, "stopping daemon");
                     break;
                 }
                 if (!strcmp(command_list[0], "service_start")) {
-                    struct ServiceData sv = read_service_toml_file(TOML_DIR_PATH, command_list[1]);
-                    if (!sv.ok) {
+                    struct ServiceData service_data = read_service_toml_file(TOML_DIR_PATH, command_list[1]);
+                    if (!service_data.ok) {
                         fprintf(stderr, "the service could not be started");
                     } else {
                         printf("starting service: %s\n", command_list[1]);
-                        printf("command=%s\nargs=%s\n", sv.command, sv.args);
-                        start_service(sv);
+                        printf("command=%s\nargs=%s\n", service_data.command, service_data.args);
+                        start_service(service_data);
                     }
-                } 
-                
+                }
             }
             close(clientfd);
         }
     }
-    
     printf("\nunlinking %s\n", SOCKET_PATH);
     unlink(SOCKET_PATH);
     printf("goodbye\n");
