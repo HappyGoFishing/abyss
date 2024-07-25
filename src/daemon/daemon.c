@@ -106,9 +106,13 @@ int main(void) {
                     if (!service_data.ok) {
                         fprintf(stderr, "the service could not be started");
                     } else {
-                        printf("starting service: %s\n", command_list[1]);
+                        struct ServiceInfo service_info;
+                        service_info.data = service_data;
+                        strcpy(command_list[1], service_info.service_name);
+
+                        printf("starting service: %s\n", service_info.service_name);
                         printf("command=%s\nargs=%s\n", service_data.command, service_data.args);
-                        start_service(service_data);
+                        start_service(service_info);
                     }
                 }
             }
@@ -120,3 +124,4 @@ int main(void) {
     printf("goodbye\n");
     return 0;
 }
+

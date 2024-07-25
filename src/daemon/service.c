@@ -1,6 +1,5 @@
 #include "service.h"
 
-#include <iomanip>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -8,6 +7,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "../shared/tomlc99/toml.h"
@@ -67,9 +67,12 @@ struct ServiceData read_service_toml_file(const char *dirname, const char *filen
     return data;
 }
 
-void start_service(struct ServiceData service_data) {
+void start_service(struct ServiceInfo service) {
+
     pid_t pid = fork();
     if (!pid) {
-        execl(service_data.command, service_data.args, NULL);
+        service.pid = getpid();
+        printf("pid of service: %i\n", service.pid);
+        execl(service.data.command, service.data.args, NULL);
     }
 }
