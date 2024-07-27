@@ -27,14 +27,14 @@ struct Service read_service_toml_file(const char *dirname, const char *filename)
     strcat(path, filename);
     strcat(path, ".toml");
 
-    printf("trying to open: %s\n", path);
+    printf("trying to open service file: %s\n", path);
 
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {
         fprintf(stderr, "could not open service file: %s\n", path);
         return service;
     }
-    printf("opened service file: %s\n", path);
+    printf("found service file: %s\n", path);
     char errbuf[200];
     toml_table_t *service_toml = toml_parse_file(fp, errbuf, sizeof(errbuf));
     fclose(fp);
@@ -72,7 +72,9 @@ void start_service(struct Service service) {
     pid_t pid = fork();
     if (!pid) {
         service.pid = getpid();
-        printf("pid of service: %i\n", service.pid);
+        printf("PID of service %s is: %i\n", service.name, service.pid);
         execl(service.command, service.args, NULL);
+        
     }
 }
+

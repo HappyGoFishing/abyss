@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "../shared/util.h"
@@ -15,7 +16,7 @@
 #define BUFFER_SIZE 1024
 #define MAX_COMMAND_LIST_SIZE 2
 
-#define TOML_DIR_PATH "./"
+#define SERVICE_PATH "./"
 
 static bool running = false;
 
@@ -58,8 +59,10 @@ int main(void) {
     if (sockfd == -1) {
         fprintf(stderr, "failed to bind socket %s\n", SOCKET_PATH);
         exit(1);
-    } else
+    } else {
         printf("bound socket, listening on: %s\n", SOCKET_PATH);
+    }
+    printf("using SERVICE_PATH: %s\n", SERVICE_PATH);
 
     fd_set read_fds;
     int max_fd = sockfd + 1;
@@ -109,7 +112,7 @@ int main(void) {
                     break;
                 }
                 if (!strcmp(command_list[0], "service_start")) {
-                    struct Service service = read_service_toml_file(TOML_DIR_PATH, command_list[1]);
+                    struct Service service = read_service_toml_file(SERVICE_PATH, command_list[1]);
                     strcpy(service.name, command_list[1]);
                     if (!service.ok) {
                         fprintf(stderr, "the service could not be started\n");

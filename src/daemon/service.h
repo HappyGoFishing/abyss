@@ -13,4 +13,3 @@ struct Service {
 
 struct Service read_service_toml_file(const char* dirname, const char* filename);
 void start_service(struct Service service);
-
