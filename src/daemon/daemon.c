@@ -77,6 +77,8 @@ int main(void) {
 
         int clientfd;
 
+        char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
+        
         if (FD_ISSET(sockfd, &read_fds)) {
             struct sockaddr_un client_addr;
             socklen_t client_addr_len = sizeof(client_addr);
@@ -88,7 +90,12 @@ int main(void) {
                 // split the command into an array of strings
                 char *token;
                 char *save_ptr = buffer;
-                char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
+
+                //reset command_list to empty
+                for (int i = 0; i < MAX_COMMAND_LIST_SIZE; i++) {
+                    command_list[i][0] = '\0';
+                }
+                
                 int i = 0;
                 while ((token = strtok_r(save_ptr, " ", &save_ptr))) {
                     printf("token[%i]: %s\n", i, token);
@@ -102,17 +109,14 @@ int main(void) {
                     break;
                 }
                 if (!strcmp(command_list[0], "service_start")) {
-                    struct ServiceData service_data = read_service_toml_file(TOML_DIR_PATH, command_list[1]);
-                    if (!service_data.ok) {
-                        fprintf(stderr, "the service could not be started");
+                    struct Service service = read_service_toml_file(TOML_DIR_PATH, command_list[1]);
+                    strcpy(service.name, command_list[1]);
+                    if (!service.ok) {
+                        fprintf(stderr, "the service could not be started\n");
                     } else {
-                        struct ServiceInfo service_info;
-                        service_info.data = service_data;
-                        strcpy(command_list[1], service_info.service_name);
-
-                        printf("starting service: %s\n", service_info.service_name);
-                        printf("command=%s\nargs=%s\n", service_data.command, service_data.args);
-                        start_service(service_info);
+                        printf("starting service: %s\n", service.name);
+                        printf("command=%s\nargs=%s\n", service.command, service.args);
+                        start_service(service);
                     }
                 }
             }

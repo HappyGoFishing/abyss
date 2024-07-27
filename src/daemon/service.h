@@ -2,18 +2,15 @@
 #include <stdbool.h>
 #include <fcntl.h>
 
-struct ServiceData {
-    char command[512];
+struct Service {
+    char command[128];
     char args[1024];
-    bool ok;
-};
-
-struct ServiceInfo {
-    struct ServiceData data;
-    char service_name[128];
+    char name[64];
     pid_t pid;
     
+    bool ok; // used to indicate if service is malformed when parsed from toml etc.
 };
 
-struct ServiceData read_service_toml_file(const char* dirname, const char* filename);
-void start_service(struct ServiceInfo service);
+struct Service read_service_toml_file(const char* dirname, const char* filename);
+void start_service(struct Service service);
+
