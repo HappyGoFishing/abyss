@@ -1,5 +1,2 @@
-1. none blocking client with select(). #done
-2. split message command into mulitple strings. #done
-3. read the toml file #done
-4. managing services.
-5. store running service IDs via their PIDs and metadata from TOML.
+dynamic array of Service structs to track running services.
+implement stopping services by iterating over the array until it finds the name given, then killing the PID, and removing its struct from the array.
