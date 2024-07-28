@@ -65,9 +65,8 @@ int main(void) {
     printf("using SERVICE_PATH: %s\n", SERVICE_PATH);
 
     fd_set read_fds;
-    int max_fd = sockfd + 1;
 
-    char buffer[BUFFER_SIZE] = "";
+    int max_fd = sockfd + 1;
 
     bool running = true;
 
@@ -75,30 +74,30 @@ int main(void) {
         FD_ZERO(&read_fds);
         FD_SET(sockfd, &read_fds);
 
-        if (select(max_fd, &read_fds, NULL, NULL, NULL) == -1)
+        if (select(max_fd, &read_fds, NULL, NULL, NULL) == -1) {
+            perror("select");
             break;
-
-        int clientfd;
-
-        char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
-        
+        }
         if (FD_ISSET(sockfd, &read_fds)) {
             struct sockaddr_un client_addr;
             socklen_t client_addr_len = sizeof(client_addr);
-
+            int clientfd;
             if ((clientfd = accept(sockfd, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
                 perror("accept");
             } else {
+                char buffer[BUFFER_SIZE] = "";
                 receive_message(clientfd, buffer, BUFFER_SIZE);
                 // split the command into an array of strings
                 char *token;
                 char *save_ptr = buffer;
 
-                //reset command_list to empty
+                char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
+
+                // reset command_list to empty
                 for (int i = 0; i < MAX_COMMAND_LIST_SIZE; i++) {
                     command_list[i][0] = '\0';
                 }
-                
+
                 int i = 0;
                 while ((token = strtok_r(save_ptr, " ", &save_ptr))) {
                     printf("token[%i]: %s\n", i, token);
@@ -131,4 +130,3 @@ int main(void) {
     printf("goodbye\n");
     return 0;
 }
-
