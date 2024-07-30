@@ -19,7 +19,7 @@ struct ServiceArray {
     size_t size;
 };
 
-void is_service_in_array(struct ServiceArray *array, const char *service_name);
+bool is_service_in_array(struct ServiceArray *array, const char *service_name);
 
 void add_service_to_array(struct ServiceArray *array, struct Service service);
 
