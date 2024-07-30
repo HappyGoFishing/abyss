@@ -1,8 +1,8 @@
 #include <fcntl.h>
-#include <pthread.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -16,7 +16,6 @@
 #define BUFFER_SIZE 1024
 #define MAX_COMMAND_LIST_SIZE 2
 
-#define SERVICE_PATH "./"
 
 static bool running = false;
 
@@ -54,16 +53,18 @@ void signal_handler(int sig) {
 
 int main(void) {
     signal(SIGINT, signal_handler);
-
+    printf("SERVICE_PATH = %s\n", SERVICE_PATH);
+    printf("SOCKET_PATH = %s\n", SOCKET_PATH);
     int sockfd = setup_socket();
     if (sockfd == -1) {
-        fprintf(stderr, "failed to bind socket %s\n", SOCKET_PATH);
+        fprintf(stderr, "failed to bind socket\n");
         exit(1);
     } else {
-        printf("bound socket, listening on: %s\n", SOCKET_PATH);
+        printf("listening on bound socket\n");
     }
-    printf("using SERVICE_PATH: %s\n", SERVICE_PATH);
 
+    struct ServiceArray active_services;
+    active_services.size = 0;
     fd_set read_fds;
 
     int max_fd = sockfd + 1;

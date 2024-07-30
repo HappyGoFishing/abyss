@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra 
 
 SHARED_SRC := $(shell find src/shared -name "*.c") 
 CLIENT_SRC := $(shell find src/client -name "*.c")

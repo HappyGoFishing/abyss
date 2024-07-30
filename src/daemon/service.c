@@ -1,5 +1,6 @@
 #include "service.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -11,6 +12,33 @@
 #include <unistd.h>
 
 #include "../shared/tomlc99/toml.h"
+
+void is_service_in_array(struct ServiceArray *array, const char *service_name) {
+    if (array == NULL) {
+        fprintf(stderr, "null service array\n");
+        return;
+    } else if (service_name == NULL) {
+        fprintf(stderr, "null service_name\n");
+        return;
+    }
+}
+
+void add_service_to_array(struct ServiceArray *array, struct Service service) {
+    if (array == NULL) {
+        fprintf(stderr, "null service array\n");
+        return;
+    } 
+}
+
+void remove_service_from_array(struct ServiceArray *array, const char *service_name) {
+    if (array == NULL) {
+        fprintf(stderr, "null service array\n");
+        return;
+    } else if (service_name == NULL) {
+        fprintf(stderr, "null service_name\n");
+        return;
+    }
+}
 
 struct Service read_service_toml_file(const char *dirname, const char *filename) {
     struct Service service = {.command = "", .args = "", .ok = false};
