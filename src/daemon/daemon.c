@@ -46,8 +46,16 @@ int setup_socket() {
 }
 
 void signal_handler(int sig) {
-    if (sig == SIGINT)
-        running = 0;
+    switch (sig) {
+        case SIGINT:
+            running = 0;
+            break;
+        case SIGTERM:
+            running = 0;
+            break;
+        default:
+            break;
+    }
 }
 
 int main(void) {
