@@ -2,8 +2,9 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <stddef.h>
+
 #define SERVICE_PATH "./"
-#define MAX_SERVICE_ARRAY_SIZE 128 // number of services that can be started (might make the array dynamically resize later on but cba right now)
+#define MAX_SERVICE_ARRAY_SIZE 128 
 
 struct Service {
     char command[128];
@@ -19,14 +20,14 @@ struct ServiceArray {
     size_t size;
 };
 
-bool is_service_in_array(struct ServiceArray *array, const char *service_name);
+int find_service_index_by_name(struct ServiceArray *array, const char *service_name);
 
-void add_service_to_array(struct ServiceArray *array, struct Service service);
+int add_service_to_array(struct ServiceArray *array, struct Service service);
 
 void remove_service_from_array(struct ServiceArray *array, const char *service_name);
 
-
 struct Service read_service_toml_file(const char* dirname, const char* filename);
 
-
 void start_service(struct Service service);
+
+void stop_service(const char *service_name, struct ServiceArray *array);
