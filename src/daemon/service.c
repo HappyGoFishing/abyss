@@ -131,7 +131,7 @@ void start_service(struct Service service) {
     if (pid == 0) {
         service.pid = getpid();
         printf("PID of service %s is: %i\n", service.name, service.pid);
-        //redirecting stdout and stderr to devnull
+        //placeholder devnull until toml file specifies stdout and stderr redirect
         int devnull = open("/dev/null", O_WRONLY);
         dup2(devnull, STDOUT_FILENO);
 

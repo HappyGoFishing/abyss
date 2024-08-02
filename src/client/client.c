@@ -49,13 +49,7 @@ int main(int argc, char **argv) {
     strip_whitespace(buffer);
 
     if (send_message(sockfd, buffer) != 0)
-        exit(1);
-
-    if (receive_message(sockfd, buffer, BUFFER_SIZE) == -1)
-        exit(1);
-
-    printf("%s\n", buffer);
-
+        exit(EXIT_FAILURE);
     close(sockfd);
     return 0;
 }
