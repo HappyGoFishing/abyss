@@ -46,23 +46,11 @@ int setup_socket() {
 }
 
 void signal_handler(int sig) {
-    switch (sig) {
-        case SIGINT:
-            running = 0;
-            break;
-        case SIGTERM:
-            running = 0;
-            break;
-        default:
-            break;
-    }
+    //if (sig == SIGINT) running = 0;
 }
 
 int main(void) {
     signal(SIGINT, signal_handler);
-    printf("SERVICE_PATH = %s\n", SERVICE_PATH);
-    printf("MAX_SERVICE_ARRAY_SIZE = %i\n", MAX_SERVICE_ARRAY_SIZE);
-    printf("SOCKET_PATH = %s\n", SOCKET_PATH);
     int sockfd = setup_socket();
     if (sockfd == -1) {
         fprintf(stderr, "failed to bind socket\n");
@@ -111,18 +99,21 @@ int main(void) {
                     i++;
                 }
 
+                int child_pipefds[2]; // used by child to send pid back to parent after fork
+                pipe(child_pipefds);
+
                 if (!strcmp(command_list[0], "service_start")) {
                     struct Service service = read_service_toml_file(SERVICE_PATH, command_list[1]);
                     strcpy(service.name, command_list[1]);
                     if (!service.ok) {
-                        fprintf(stderr, "couldnt start service: (service data is malformed)\n");
+                        fprintf(stderr, "not starting service: (service data is malformed)\n");
                     } else {
                         if (find_service_index_by_name(&active_services, service.name) != -1) {
-                            printf("couldnt start service: %s (service already running)\n", service.name);
+                            printf("not starting service: %s (service already running)\n", service.name);
                         } else {
                             printf("starting service: %s\n", service.name);
                             printf("command=%s\nargs=%s\n", service.command, service.args);
-                            start_service(service);
+                            start_service(&service, child_pipefds);
                             if (add_service_to_array(&active_services, service) == -1) {
                             // service failed to start
                             }
@@ -132,6 +123,7 @@ int main(void) {
 
                 if (!strcmp(command_list[0], "service_stop")) {
                     stop_service(command_list[1], &active_services);
+                    remove_service_from_array(&active_services, command_list[1]);
                 }
             }
             close(clientfd);
@@ -142,3 +134,5 @@ int main(void) {
     printf("goodbye\n");
     return 0;
 }
+
+
