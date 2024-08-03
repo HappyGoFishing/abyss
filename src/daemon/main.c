@@ -46,7 +46,7 @@ int setup_socket() {
 }
 
 void signal_handler(int sig) {
-    //if (sig == SIGINT) running = 0;
+    if (sig == SIGINT) running = 0;
 }
 
 int main(void) {
