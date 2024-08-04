@@ -5,7 +5,7 @@
 #include "service.h"
 
 struct Service read_service_toml_file(const char *dirname, const char *filename) {
-    struct Service service = {.ok = false};
+    struct Service service = {.pid = SERVICE_PID_ERROR_VALUE}; // struct is returned with .pid = -100 if the service data is malformed 
     if (!dirname || !filename) {
         fprintf(stderr, "filename or dirname is NULL\n");
         return service;
@@ -77,7 +77,7 @@ struct Service read_service_toml_file(const char *dirname, const char *filename)
     strncpy(service.args, args.u.s, sizeof(service.args) - 1);
     service.args[sizeof(service.args) - 1] = '\0';
     
-    service.ok = true;
+    service.pid = 0;
 
     free(command.u.s);
     free(args.u.s);

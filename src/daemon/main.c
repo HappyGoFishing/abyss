@@ -105,7 +105,7 @@ int main(void) {
                 if (!strcmp(command_list[0], "service-start")) {
                     struct Service service = read_service_toml_file(SERVICE_PATH, command_list[1]);
                     strcpy(service.name, command_list[1]);
-                    if (!service.ok) {
+                    if (service.pid == SERVICE_PID_ERROR_VALUE) {
                         fprintf(stderr, "not starting service: (service data is malformed)\n");
                     } else {
                         if (find_service_index_by_name(&active_services, service.name) != -1) {
