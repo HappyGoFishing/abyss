@@ -9,8 +9,7 @@
 #define MAX_SERVICE_COMMAND_LENGTH 128
 #define MAX_SERVICE_ARGS_LENGTH 512
 #define MAX_SERVICE_NAME_LENGTH 64
-
-#define SERVICE_PID_ERROR_VALUE -100
+#define MAX_ARGS MAX_SERVICE_ARGS_LENGTH / 2 
 
 struct Service {
     char command[MAX_SERVICE_COMMAND_LENGTH];
@@ -30,8 +29,8 @@ int add_service_to_array(struct ServiceArray *sa, struct Service service);
 
 int remove_service_from_array(struct ServiceArray *sa, const char *service_name);
 
-struct Service read_service_toml_file(const char* dirname, const char* filename);
+struct Service * read_service_toml_file(const char* dirname, const char* filename);
 
 void start_service(struct Service *service, int *child_pipeds);
 
-void stop_service(const char *service_name, struct ServiceArray *sa);
+int stop_service(const char *service_name, struct ServiceArray *sa);

@@ -72,68 +72,73 @@ int main(void) {
             perror("select");
             break;
         }
-        if (FD_ISSET(sockfd, &read_fds)) {
-            struct sockaddr_un client_addr;
-            socklen_t client_addr_len = sizeof(client_addr);
-            int clientfd;
-            if ((clientfd = accept(sockfd, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
-                perror("accept");
-            } else {
-                char buffer[BUFFER_SIZE] = "";
-                receive_message(clientfd, buffer, BUFFER_SIZE);
+        if (!FD_ISSET(sockfd, &read_fds)) continue;
 
-                char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
-
-                // reset command_list to empty
-                for (int i = 0; i < MAX_COMMAND_LIST_SIZE; i++) {
-                    command_list[i][0] = '\0';
-                }
-
-                // split received message into array of strings
-                char *token;
-                char *save_ptr = buffer;
-                int i = 0;
-                while ((token = strtok_r(save_ptr, " ", &save_ptr))) {
-                    //printf("token[%i]: %s\n", i, token);
-                    strcpy(command_list[i], token);
-                    i++;
-                }
-
-                int child_pipefds[2]; // used by child to send pid back to parent after fork
-                pipe(child_pipefds);
-
-                if (!strcmp(command_list[0], "service-start")) {
-                    struct Service service = read_service_toml_file(SERVICE_PATH, command_list[1]);
-                    strcpy(service.name, command_list[1]);
-                    
-                    if (service.pid == SERVICE_PID_ERROR_VALUE) {
-                        fprintf(stderr, "not starting service: (service data is malformed)\n");
-                        continue;
-                    } 
-                    if (find_service_index_by_name(&active_services, service.name) != -1) {
-                        printf("not starting service: (%s is already running)\n", service.name);
-                        continue;
-                    } 
-                    printf("starting service: %s\n\tcommand=%s\n\targs=%s\n", service.name, service.command, service.args);
-                    start_service(&service, child_pipefds);
-                    if (add_service_to_array(&active_services, service) == -1) {
-                            // service failed to start
-                            }
-                    
-                }
-
-                if (!strcmp(command_list[0], "service-stop")) {
-                    stop_service(command_list[1], &active_services);
-                    remove_service_from_array(&active_services, command_list[1]);
-                }
-            }
-            close(clientfd);
+        struct sockaddr_un client_addr;
+        socklen_t client_addr_len = sizeof(client_addr);
+        int clientfd;
+        if ((clientfd = accept(sockfd, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
+            perror("accept");
+            continue;
         }
+        char buffer[BUFFER_SIZE] = "";
+        receive_message(clientfd, buffer, BUFFER_SIZE);
+        char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
+        // reset command_list to empty
+        for (int i = 0; i < MAX_COMMAND_LIST_SIZE; i++) {
+            command_list[i][0] = '\0';
+        }
+        // split received message into array of strings
+        char *cmd_token;
+        char *save_ptr = buffer;
+        for (int i = 0; (cmd_token = strtok_r(save_ptr, " ", &save_ptr)); i++) {
+            strncpy(command_list[i], cmd_token, sizeof(command_list[i]));
+        }
+
+        if (!strcmp(command_list[0], "service-start")) {
+            struct Service *service = read_service_toml_file(SERVICE_PATH, command_list[1]);
+            if (service == NULL) {
+                fprintf(stderr, "error: (couldn't read service file for %s)\n", command_list[1]);
+                close(clientfd);
+                continue;
+            }
+            strcpy(service->name, command_list[1]);
+            
+            if (find_service_index_by_name(&active_services, service->name) != -1) {
+                printf("not starting service: (%s is already running)\n", service->name);
+                close(clientfd);
+                continue;
+            } 
+            printf("starting service: %s\n\tcommand=%s\n\targs=%s\n", service->name, service->command, service->args);
+            int child_pipefds[2]; // used by child to send pid back to parent after fork
+            if (pipe(child_pipefds) == -1) {
+                perror("pipe");
+                close(clientfd);
+                continue;
+            }
+            
+            start_service(service, child_pipefds);
+            if (add_service_to_array(&active_services, *service) == -2) {
+                printf("couldn't start service %s (reached max service number %i)\n", service->name, MAX_SERVICE_ARRAY_SIZE);
+                close(clientfd);
+                continue;
+            }
+        }
+
+        if (!strcmp(command_list[0], "service-stop")) {
+            if (find_service_index_by_name(&active_services, command_list[1]) == -1) {
+                printf("couldn't stop service: %s (service not running)\n", command_list[1]);
+                close(clientfd);
+                continue;
+            }
+            stop_service(command_list[1], &active_services);
+            remove_service_from_array(&active_services, command_list[1]);
+        }
+
+        close(clientfd);
     }
     printf("\nunlinking %s\n", SOCKET_PATH);
     unlink(SOCKET_PATH);
     printf("goodbye\n");
     return 0;
 }
-
-

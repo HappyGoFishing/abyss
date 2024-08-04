@@ -5,6 +5,17 @@
 
 #include "util.h"
 
+int count_substrings(const char *str) {
+    int count = 0;
+    const char *p = str;
+    while(*p) {
+        while (*p  == ' ') p++;
+        if (*p) count++;
+        while (*p && *p != ' ') p++;
+    }
+    return count;
+}
+
 void strip_whitespace(char *str) {
     if (str == NULL)
         return;
