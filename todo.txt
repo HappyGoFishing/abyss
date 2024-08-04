@@ -1,2 +1,0 @@
-dynamic array of Service structs to track running services.
-implement stopping services by iterating over the array until it finds the name given, then killing the PID, and removing its struct from the array.

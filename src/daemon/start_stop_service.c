@@ -27,7 +27,10 @@ void start_service(struct Service *service, int *child_pipefds) {
         write(child_pipefds[1], &service->pid, sizeof(service->pid));
         close(child_pipefds[1]);
 
-        execl(service->command, service->args, NULL);
+        char *argv[] = {service->command, service->args, NULL};
+        char *envp[] = { NULL };
+
+        execve(service->command, argv, envp);
         
         perror("execl");
         exit(EXIT_FAILURE);
@@ -49,5 +52,6 @@ void stop_service(const char *service_name, struct ServiceArray *sa) {
     }
     printf("terminating PID: %i\n", sa->array[i].pid);
     kill(sa->array[i].pid, SIGTERM);
+    waitpid(sa->array[i].pid, NULL, 0);
     printf("stopped service: %s (pid terminated %i)\n", service_name, sa->array[i].pid);
 }

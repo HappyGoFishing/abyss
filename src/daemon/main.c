@@ -94,7 +94,7 @@ int main(void) {
                 char *save_ptr = buffer;
                 int i = 0;
                 while ((token = strtok_r(save_ptr, " ", &save_ptr))) {
-                    printf("token[%i]: %s\n", i, token);
+                    //printf("token[%i]: %s\n", i, token);
                     strcpy(command_list[i], token);
                     i++;
                 }
@@ -109,10 +109,9 @@ int main(void) {
                         fprintf(stderr, "not starting service: (service data is malformed)\n");
                     } else {
                         if (find_service_index_by_name(&active_services, service.name) != -1) {
-                            printf("not starting service: %s (service already running)\n", service.name);
+                            printf("not starting service: (%s is already running)\n", service.name);
                         } else {
-                            printf("starting service: %s\n", service.name);
-                            printf("command=%s\nargs=%s\n", service.command, service.args);
+                            printf("starting service: %s\n\tcommand=%s\n\targs=%s\n", service.name, service.command, service.args);
                             start_service(&service, child_pipefds);
                             if (add_service_to_array(&active_services, service) == -1) {
                             // service failed to start

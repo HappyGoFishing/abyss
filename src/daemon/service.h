@@ -3,11 +3,11 @@
 #include <fcntl.h>
 #include <stddef.h>
 
-#define SERVICE_PATH "./"
-#define MAX_PATH_LENGTH 512
+#define SERVICE_PATH "./services"
+#define MAX_PATH_LENGTH 1024
 #define MAX_SERVICE_ARRAY_SIZE 128 
 #define MAX_SERVICE_COMMAND_LENGTH 128
-#define MAX_SERVICE_ARGS_LENGTH 1024
+#define MAX_SERVICE_ARGS_LENGTH 512
 #define MAX_SERVICE_NAME_LENGTH 64
 
 struct Service {
@@ -32,6 +32,6 @@ void remove_service_from_array(struct ServiceArray *sa, const char *service_name
 
 struct Service read_service_toml_file(const char* dirname, const char* filename);
 
-void start_service(struct Service *service, int *child_pipefds);
+void start_service(struct Service *service, int *child_pipeds);
 
 void stop_service(const char *service_name, struct ServiceArray *sa);

@@ -5,7 +5,7 @@
 #include "service.h"
 
 struct Service read_service_toml_file(const char *dirname, const char *filename) {
-    struct Service service = {.command = "", .args = "", .ok = false};
+    struct Service service = {.ok = false};
     if (!dirname || !filename) {
         fprintf(stderr, "filename or dirname is NULL\n");
         return service;

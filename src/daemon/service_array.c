@@ -14,12 +14,12 @@ int find_service_index_by_name(struct ServiceArray *sa, const char *service_name
 
 int add_service_to_array(struct ServiceArray *sa, struct Service service) {
     if (sa->size >= MAX_SERVICE_ARRAY_SIZE) {
-        printf("cant add service: %s (reached MAX_SERVICE_ARRAY_SIZE)\n", service.name);
+        //printf("cant add service: %s (reached MAX_SERVICE_ARRAY_SIZE)\n", service.name);
         return -2;
     }
     if (find_service_index_by_name(sa, service.name) != -1) {
         return -1;
-    }
+    } 
     sa->array[sa->size] = service;
     sa->size++;
     return 0;
@@ -33,6 +33,6 @@ void remove_service_from_array(struct ServiceArray *sa, const char *service_name
         }
         sa->size--;
     } else {
-        printf("cant remove service: %s (service not found\n)", service_name);
+        //printf("cant remove service: %s (not in array)\n", service_name);
     }
 }
