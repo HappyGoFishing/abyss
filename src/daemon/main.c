@@ -105,19 +105,21 @@ int main(void) {
                 if (!strcmp(command_list[0], "service-start")) {
                     struct Service service = read_service_toml_file(SERVICE_PATH, command_list[1]);
                     strcpy(service.name, command_list[1]);
+                    
                     if (service.pid == SERVICE_PID_ERROR_VALUE) {
                         fprintf(stderr, "not starting service: (service data is malformed)\n");
-                    } else {
-                        if (find_service_index_by_name(&active_services, service.name) != -1) {
-                            printf("not starting service: (%s is already running)\n", service.name);
-                        } else {
-                            printf("starting service: %s\n\tcommand=%s\n\targs=%s\n", service.name, service.command, service.args);
-                            start_service(&service, child_pipefds);
-                            if (add_service_to_array(&active_services, service) == -1) {
+                        continue;
+                    } 
+                    if (find_service_index_by_name(&active_services, service.name) != -1) {
+                        printf("not starting service: (%s is already running)\n", service.name);
+                        continue;
+                    } 
+                    printf("starting service: %s\n\tcommand=%s\n\targs=%s\n", service.name, service.command, service.args);
+                    start_service(&service, child_pipefds);
+                    if (add_service_to_array(&active_services, service) == -1) {
                             // service failed to start
                             }
-                        }
-                    }
+                    
                 }
 
                 if (!strcmp(command_list[0], "service-stop")) {

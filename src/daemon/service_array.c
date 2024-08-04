@@ -9,7 +9,7 @@ int find_service_index_by_name(struct ServiceArray *sa, const char *service_name
             return i;
         }
     }
-    return -1;
+    return -1; //service is not in array
 }
 
 int add_service_to_array(struct ServiceArray *sa, struct Service service) {
