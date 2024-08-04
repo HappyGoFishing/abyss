@@ -102,7 +102,7 @@ int main(void) {
                 int child_pipefds[2]; // used by child to send pid back to parent after fork
                 pipe(child_pipefds);
 
-                if (!strcmp(command_list[0], "service_start")) {
+                if (!strcmp(command_list[0], "service-start")) {
                     struct Service service = read_service_toml_file(SERVICE_PATH, command_list[1]);
                     strcpy(service.name, command_list[1]);
                     if (!service.ok) {
@@ -120,7 +120,7 @@ int main(void) {
                     }
                 }
 
-                if (!strcmp(command_list[0], "service_stop")) {
+                if (!strcmp(command_list[0], "service-stop")) {
                     stop_service(command_list[1], &active_services);
                     remove_service_from_array(&active_services, command_list[1]);
                 }
