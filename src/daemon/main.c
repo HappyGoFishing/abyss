@@ -46,7 +46,14 @@ int setup_socket() {
 }
 
 void signal_handler(int sig) {
-    if (sig == SIGINT) running = 0;
+    switch (sig) {
+        case SIGINT:
+            running = 0;
+            break;
+        case SIGTERM:
+            running = 0;
+            break;
+    }
 }
 
 int main(void) {
@@ -94,7 +101,7 @@ int main(void) {
         for (int i = 0; (cmd_token = strtok_r(save_ptr, " ", &save_ptr)); i++) {
             strncpy(command_list[i], cmd_token, sizeof(command_list[i]));
         }
-
+        
         if (!strcmp(command_list[0], "service-start")) {
             struct Service *service = read_service_toml_file(SERVICE_PATH, command_list[1]);
             if (service == NULL) {

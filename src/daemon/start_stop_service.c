@@ -1,5 +1,5 @@
 #include "service.h"
-#include "../shared/util.h"
+
 #include <assert.h>
 #include <signal.h>
 #include <stdbool.h>
