@@ -63,14 +63,15 @@ int main(void) {
         fprintf(stderr, "failed to bind socket\n");
         exit(EXIT_FAILURE);
     } else {
-        printf("listening on bound socket\n");
+        printf("listening on bound socket: %s\n", SOCKET_PATH);
     }
-    struct ServiceArray active_services = { .size = 0 };
+    struct ServiceArray sa = { .size = 0 }; // the services currently active
     
     fd_set read_fds;
     int max_fd = sockfd + 1;
 
     bool running = true;
+
     while (running) {
         FD_ZERO(&read_fds);
         FD_SET(sockfd, &read_fds);
@@ -111,7 +112,7 @@ int main(void) {
             }
             strcpy(service->name, command_list[1]);
             
-            if (find_service_index_by_name(&active_services, service->name) != -1) {
+            if (find_service_index_by_name(&sa, service->name) != -1) {
                 printf("not starting service: (%s is already running)\n", service->name);
                 close(clientfd);
                 continue;
@@ -125,7 +126,7 @@ int main(void) {
             }
             
             start_service(service, child_pipefds);
-            if (add_service_to_array(&active_services, *service) == -2) {
+            if (add_service_to_array(&sa, *service) == -2) {
                 printf("couldn't start service %s (reached max service number %i)\n", service->name, MAX_SERVICE_ARRAY_SIZE);
                 close(clientfd);
                 continue;
@@ -133,15 +134,20 @@ int main(void) {
         }
 
         if (!strcmp(command_list[0], "service-stop")) {
-            if (find_service_index_by_name(&active_services, command_list[1]) == -1) {
+            if (find_service_index_by_name(&sa, command_list[1]) == -1) {
                 printf("couldn't stop service: %s (service not running)\n", command_list[1]);
                 close(clientfd);
                 continue;
             }
-            stop_service(command_list[1], &active_services);
-            remove_service_from_array(&active_services, command_list[1]);
+            stop_service(command_list[1], &sa);
+            remove_service_from_array(&sa, command_list[1]);
         }
-
+        if (!strcmp(command_list[0], "service-list-running")) {
+            printf("active services (%zu): \n", sa.size);
+            for (size_t i = 0; i < sa.size; i++) {
+                printf("%li: %s\n", i + 1,  sa.array[i].name);
+            }
+        }
         close(clientfd);
     }
     printf("\nunlinking %s\n", SOCKET_PATH);

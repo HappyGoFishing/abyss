@@ -14,7 +14,7 @@
 #include <fcntl.h>
 
 char ** argv_from_args_string(const char * args_str) {
-    char ** argv = (char **)malloc((MAX_SERVICE_ARGS_LENGTH + 1) * sizeof(char *));
+    char **argv = (char **)malloc((MAX_SERVICE_ARGS_LENGTH + 1) * sizeof(char *));
     char arg_str_copy[MAX_SERVICE_ARGS_LENGTH];
     strncpy(arg_str_copy, args_str, sizeof(arg_str_copy));
     arg_str_copy[sizeof(arg_str_copy) - 1] = '\0';
@@ -70,7 +70,6 @@ void start_service(struct Service *service, int *child_pipefds) {
 
 int stop_service(const char *service_name, struct ServiceArray *sa) {
     int i = find_service_index_by_name(sa, service_name);
-    printf("terminating PID: %i\n", sa->array[i].pid);
     kill(sa->array[i].pid, SIGTERM);
     waitpid(sa->array[i].pid, NULL, 0);
     printf("stopped service: %s (pid terminated %i)\n", service_name, sa->array[i].pid);

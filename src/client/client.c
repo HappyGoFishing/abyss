@@ -30,7 +30,7 @@ int setup_socket() {
 int main(int argc, char **argv) {
     if (argc <= 1) {
         printf("usage: abyssctl <command>\n");
-        exit(1);
+        return 0;
     }
 
     int sockfd = setup_socket();
