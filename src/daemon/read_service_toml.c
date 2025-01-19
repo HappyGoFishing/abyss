@@ -1,5 +1,5 @@
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include "../shared/tomlc99/toml.h"
 #include "service.h"
@@ -24,8 +24,9 @@ struct Service * read_service_toml_file(const char *dirname, const char *filenam
 
     path[sizeof(path) -1] = '\0';
     
-    if (dirname[dirname_len - 1] != '/') strncat(path, "/", sizeof(path) - strlen(path) -1);
-    
+    if (dirname[dirname_len - 1] != '/') {
+        strncat(path, "/", sizeof(path) - strlen(path) -1);
+    }
 
     strncat(path, filename, sizeof(path) - strlen(path) - 1);
     strncat(path, ".toml", sizeof(path) - strlen(path) - 1);

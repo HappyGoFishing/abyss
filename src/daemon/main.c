@@ -10,12 +10,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "constant_defines.h"
 #include "../shared/util.h"
 #include "service.h"
-
-#define SOCKET_PATH "/tmp/abyss.sock"
-#define BUFFER_SIZE 1024
-#define MAX_COMMAND_LIST_SIZE 2
 
 static bool running = false;
 
@@ -59,8 +56,8 @@ void signal_handler(int sig) {
 
 int main(void) {
     signal(SIGINT, signal_handler);
-    int sockfd = setup_socket();
-    if (sockfd == -1) {
+    int sock_fd = setup_socket();
+    if (sock_fd == -1) {
         fprintf(stderr, "failed to bind socket\n");
         exit(EXIT_FAILURE);
     } else {
@@ -69,7 +66,7 @@ int main(void) {
     struct ServiceArray sa = { .size = 0 }; // the services currently active
     
     struct pollfd fds[1];
-    fds[0].fd = sockfd;
+    fds[0].fd = sock_fd;
     fds[0].events = POLLIN;
 
     bool running = true;
@@ -85,15 +82,15 @@ int main(void) {
 
             struct sockaddr_un client_addr;
             socklen_t client_addr_len = sizeof(client_addr);
-            int clientfd;
-            if ((clientfd = accept(sockfd, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
+            int client_fd;
+            if ((client_fd = accept(sock_fd, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
                 perror("accept");
                 continue;
             }
             char buffer[BUFFER_SIZE] = "";
-            receive_message(clientfd, buffer, BUFFER_SIZE);
+            receive_message(client_fd, buffer, BUFFER_SIZE);
             char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
-            // reset command_list to empty
+            // reset command_list to empty by null terminating each string
             for (int i = 0; i < MAX_COMMAND_LIST_SIZE; i++) {
                 command_list[i][0] = '\0';
             }
@@ -105,31 +102,31 @@ int main(void) {
             }
             
             if (!strcmp(command_list[0], "service-start")) {
-                struct Service *service = read_service_toml_file(SERVICE_PATH, command_list[1]);
+                struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, command_list[1]);
                 if (service == NULL) {
                     fprintf(stderr, "error: (couldn't read service file for %s)\n", command_list[1]);
-                    close(clientfd);
+                    close(client_fd);
                     continue;
                 }
                 strcpy(service->name, command_list[1]);
                 
                 if (find_service_index_by_name(&sa, service->name) != -1) {
                     printf("not starting service: (%s is already running)\n", service->name);
-                    close(clientfd);
+                    close(client_fd);
                     continue;
                 } 
                 printf("starting service: %s\n\tcommand=%s\n\targs=%s\n", service->name, service->command, service->args);
                 int child_pipefds[2]; // used by child to send pid back to parent after fork
                 if (pipe(child_pipefds) == -1) {
                     perror("pipe");
-                    close(clientfd);
+                    close(client_fd);
                     continue;
                 }
                 
                 start_service(service, child_pipefds);
                 if (add_service_to_array(&sa, *service) == -2) {
                     printf("couldn't start service %s (reached max service number %i)\n", service->name, MAX_SERVICE_ARRAY_SIZE);
-                    close(clientfd);
+                    close(client_fd);
                     continue;
                 }
             }
@@ -137,7 +134,7 @@ int main(void) {
             if (!strcmp(command_list[0], "service-stop")) {
                 if (find_service_index_by_name(&sa, command_list[1]) == -1) {
                     printf("couldn't stop service: %s (service not running)\n", command_list[1]);
-                    close(clientfd);
+                    close(client_fd);
                     continue;
                 }
                 stop_service(command_list[1], &sa);
@@ -149,7 +146,7 @@ int main(void) {
                     printf("%li: %s\n", i + 1,  sa.array[i].name);
                 }
             }
-            close(clientfd);
+            close(client_fd);
         }
     }
     printf("\nunlinking %s\n", SOCKET_PATH);

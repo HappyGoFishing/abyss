@@ -1,0 +1,13 @@
+#pragma once
+
+#define SOCKET_PATH "/tmp/abyss.sock"
+#define BUFFER_SIZE 1024
+#define MAX_COMMAND_LIST_SIZE 2
+
+#define SERVICE_CONFIG_DIR_PATH "./service_configs"
+#define MAX_PATH_LENGTH 1024
+#define MAX_SERVICE_ARRAY_SIZE 128 
+#define MAX_SERVICE_COMMAND_LENGTH 128
+#define MAX_SERVICE_ARGS_LENGTH 512
+#define MAX_SERVICE_NAME_LENGTH 64
+#define MAX_ARGS MAX_SERVICE_ARGS_LENGTH / 2 

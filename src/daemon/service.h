@@ -3,13 +3,7 @@
 #include <fcntl.h>
 #include <stddef.h>
 
-#define SERVICE_PATH "./services"
-#define MAX_PATH_LENGTH 1024
-#define MAX_SERVICE_ARRAY_SIZE 128 
-#define MAX_SERVICE_COMMAND_LENGTH 128
-#define MAX_SERVICE_ARGS_LENGTH 512
-#define MAX_SERVICE_NAME_LENGTH 64
-#define MAX_ARGS MAX_SERVICE_ARGS_LENGTH / 2 
+#include "constant_defines.h"
 
 struct Service {
     char command[MAX_SERVICE_COMMAND_LENGTH];

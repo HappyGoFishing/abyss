@@ -75,3 +75,5 @@ int stop_service(const char *service_name, struct ServiceArray *sa) {
     printf("stopped service: %s (pid terminated %i)\n", service_name, sa->array[i].pid);
     return 0; // the return code of the pid
 }
+
+
