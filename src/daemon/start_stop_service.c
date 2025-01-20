@@ -13,8 +13,16 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "../shared/util.h"
+
 char ** argv_from_args_string(const char * args_str) {
+    if (args_str == NULL) {
+        return NULL;
+    }
     char **argv = (char **)malloc((MAX_SERVICE_ARGS_LENGTH + 1) * sizeof(char *));
+    if (argv == NULL) {
+        return NULL;
+    }
     char arg_str_copy[MAX_SERVICE_ARGS_LENGTH];
     strncpy(arg_str_copy, args_str, sizeof(arg_str_copy));
     arg_str_copy[sizeof(arg_str_copy) - 1] = '\0';
@@ -52,6 +60,10 @@ void start_service(struct Service *service, int *child_pipefds) {
         close(child_pipefds[1]);
 
         char **argv = argv_from_args_string(service->args);
+        if (argv == NULL) {
+            fprintf(stderr, "failed to start service: argv_from_args_string NULL");
+            return;
+        }
         argv[0] = service->command;
 
         execve(service->command, argv, NULL);

@@ -1,3 +1,3 @@
 [program]
-command = "/usr/bin/teeworlds_srv"
-args = "--host localhost"
+command = "/bin/cat"
+args = ""

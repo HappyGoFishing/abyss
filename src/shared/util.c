@@ -5,6 +5,14 @@
 
 #include "util.h"
 
+void fatal_panic(const char* msg) {
+    fprintf(stderr, "fatal panic! ");
+    if (msg != NULL) {
+        perror(msg);
+    }
+    exit(EXIT_FAILURE);
+}
+
 int count_substrings(const char *str) {
     int count = 0;
     const char *p = str;

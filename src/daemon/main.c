@@ -54,19 +54,35 @@ void signal_handler(int sig) {
     }
 }
 
+void start_autostart_services() {
+    FILE *fp_autostart_list = fopen(SERVICE_AUTOSTART_LIST_FILE, "r");
+    if (fp_autostart_list == NULL) {
+        fprintf(stderr, "error: cannot find SERVICE_AUTOSTART_LIST_FILE: %s\n", SERVICE_AUTOSTART_LIST_FILE);
+        return;
+    }
+    /*  todo: 
+            - read SERVICE_AUTOSTART_LIST_FILE to a string.
+            - split the string on "\n" into an array of substrings.
+            - for each substring start the service with its name.
+    */
+}
+
 int main(void) {
     signal(SIGINT, signal_handler);
-    int sock_fd = setup_socket();
-    if (sock_fd == -1) {
-        fprintf(stderr, "failed to bind socket\n");
+
+    int fd_sock = setup_socket();
+    if (fd_sock == -1) {
+        fprintf(stderr, "error: failed to bind socket\n");
         exit(EXIT_FAILURE);
     } else {
         printf("listening on bound socket: %s\n", SOCKET_PATH);
     }
     struct ServiceArray sa = { .size = 0 }; // the services currently active
     
+    start_autostart_services();
+
     struct pollfd fds[1];
-    fds[0].fd = sock_fd;
+    fds[0].fd = fd_sock;
     fds[0].events = POLLIN;
 
     bool running = true;
@@ -82,13 +98,13 @@ int main(void) {
 
             struct sockaddr_un client_addr;
             socklen_t client_addr_len = sizeof(client_addr);
-            int client_fd;
-            if ((client_fd = accept(sock_fd, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
+            int fd_client;
+            if ((fd_client = accept(fd_sock, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
                 perror("accept");
                 continue;
             }
             char buffer[BUFFER_SIZE] = "";
-            receive_message(client_fd, buffer, BUFFER_SIZE);
+            receive_message(fd_client, buffer, BUFFER_SIZE);
             char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
             // reset command_list to empty by null terminating each string
             for (int i = 0; i < MAX_COMMAND_LIST_SIZE; i++) {
@@ -105,28 +121,28 @@ int main(void) {
                 struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, command_list[1]);
                 if (service == NULL) {
                     fprintf(stderr, "error: (couldn't read service file for %s)\n", command_list[1]);
-                    close(client_fd);
+                    close(fd_client);
                     continue;
                 }
                 strcpy(service->name, command_list[1]);
                 
                 if (find_service_index_by_name(&sa, service->name) != -1) {
                     printf("not starting service: (%s is already running)\n", service->name);
-                    close(client_fd);
+                    close(fd_client);
                     continue;
                 } 
                 printf("starting service: %s\n\tcommand=%s\n\targs=%s\n", service->name, service->command, service->args);
                 int child_pipefds[2]; // used by child to send pid back to parent after fork
                 if (pipe(child_pipefds) == -1) {
                     perror("pipe");
-                    close(client_fd);
+                    close(fd_client);
                     continue;
                 }
                 
                 start_service(service, child_pipefds);
                 if (add_service_to_array(&sa, *service) == -2) {
                     printf("couldn't start service %s (reached max service number %i)\n", service->name, MAX_SERVICE_ARRAY_SIZE);
-                    close(client_fd);
+                    close(fd_client);
                     continue;
                 }
             }
@@ -134,7 +150,7 @@ int main(void) {
             if (!strcmp(command_list[0], "service-stop")) {
                 if (find_service_index_by_name(&sa, command_list[1]) == -1) {
                     printf("couldn't stop service: %s (service not running)\n", command_list[1]);
-                    close(client_fd);
+                    close(fd_client);
                     continue;
                 }
                 stop_service(command_list[1], &sa);
@@ -146,7 +162,7 @@ int main(void) {
                     printf("%li: %s\n", i + 1,  sa.array[i].name);
                 }
             }
-            close(client_fd);
+            close(fd_client);
         }
     }
     printf("\nunlinking %s\n", SOCKET_PATH);
