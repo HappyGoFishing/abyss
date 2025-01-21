@@ -57,17 +57,37 @@ void signal_handler(int sig) {
 void start_autostart_services() {
     printf("attempting to start autostart services\n");
     
-    FILE *fp = fopen(SERVICE_AUTOSTART_LIST_FILE, "r");
+    FILE *fp = fopen(SERVICE_AUTOSTART_LIST_FILE, "rb");
     if (fp == NULL) {
         fprintf(stderr, "error: couldn't open %s\n", SERVICE_AUTOSTART_LIST_FILE);
         return;
     }
+    
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        perror("fseek");
+        fclose(fp);
+        return;
+    }
 
-    char file_contents[MAX_AUTOSTART_SERVICE_FILE_LENGTH] = "test";
-    // read the fp_autostart_list to the file_contents
+    long fsize = ftell(fp);
+    if (fseek(fp, 0, SEEK_SET) != 0) {
+        perror("error: fseek");
+        fclose(fp);
+        return;
+    }
+    
+    char *rdbuf = malloc(fsize);
+    if (rdbuf == NULL) {
+        perror("error: malloc");
+        fclose(fp);
+        return;
+    }
 
+    fread(rdbuf, 1, fsize, fp);
+    fclose(fp);
+    
     char *name_token;
-    char *save_ptr = file_contents;
+    char *save_ptr = rdbuf;
 
     for (int i = 0; (name_token = strtok_r(save_ptr, "\n", &save_ptr)); i++) {
         
@@ -77,6 +97,8 @@ void start_autostart_services() {
             continue;
         }
     }
+
+    
 }
 
 int main(void) {
