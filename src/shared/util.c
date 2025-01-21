@@ -18,8 +18,12 @@ int count_substrings(const char *str) {
     const char *p = str;
     while(*p) {
         while (*p  == ' ') p++;
-        if (*p) count++;
-        while (*p && *p != ' ') p++;
+        if (*p) {
+            count++;
+        }
+        while (*p && *p != ' ') {
+            p++;
+        }
     }
     return count;
 }
