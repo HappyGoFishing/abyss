@@ -3,7 +3,7 @@
 #define SOCKET_PATH "/tmp/abyss.sock"
 #define BUFFER_SIZE 1024
 #define MAX_COMMAND_LIST_SIZE 2
-#define SERVICE_AUTOSTART_LIST_FILE "./service_autostart_list.txt"
+#define SERVICE_AUTOSTART_LIST_FILE "./service_configs/autostart.txt"
 #define MAX_AUTOSTART_SERVICES 32
 #define SERVICE_CONFIG_DIR_PATH "./service_configs"
 #define MAX_PATH_LENGTH 1024

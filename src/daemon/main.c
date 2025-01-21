@@ -55,9 +55,10 @@ void signal_handler(int sig) {
 }
 
 void start_autostart_services() {
+    printf("attempting to start autostart services\n");
     FILE *fp_autostart_list = fopen(SERVICE_AUTOSTART_LIST_FILE, "r");
     if (fp_autostart_list == NULL) {
-        fprintf(stderr, "error: cannot find SERVICE_AUTOSTART_LIST_FILE: %s\n", SERVICE_AUTOSTART_LIST_FILE);
+        fprintf(stderr, "error: couldn't open %s\n", SERVICE_AUTOSTART_LIST_FILE);
         return;
     }
     /*  todo: 
@@ -65,6 +66,24 @@ void start_autostart_services() {
             - split the string on "\n" into an array of substrings.
             - for each substring start the service with its name.
     */
+
+    char file_contents[] = "teeworlds\napp\ndwadw\n"; // placeholder
+    // read the fp_autostart_list to the file_contents
+
+    if (file_contents == NULL) {
+        fprintf(stderr, "error: couldn't read contents of %s\n", SERVICE_AUTOSTART_LIST_FILE);
+    }
+    char *service_name_token;
+    char *save_ptr = file_contents;
+
+    for (int i = 0; (service_name_token = strtok_r(save_ptr, "\n", &save_ptr)); i++) {
+        
+        struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, service_name_token);
+        if (service == NULL) {
+            fprintf(stderr, "error: couldn't read service config for %s\n", service_name_token);
+            continue;
+        }
+    }
 }
 
 int main(void) {
@@ -79,13 +98,14 @@ int main(void) {
     }
     struct ServiceArray sa = { .size = 0 }; // the services currently active
     
-    start_autostart_services();
 
     struct pollfd fds[1];
     fds[0].fd = fd_sock;
     fds[0].events = POLLIN;
 
     bool running = true;
+    
+    start_autostart_services();
 
     while (running) {
         int poll_ret = poll(fds, 1, -1);
@@ -120,14 +140,14 @@ int main(void) {
             if (!strcmp(command_list[0], "service-start")) {
                 struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, command_list[1]);
                 if (service == NULL) {
-                    fprintf(stderr, "error: (couldn't read service file for %s)\n", command_list[1]);
+                    fprintf(stderr, "error: couldn't read service config for %s\n", command_list[1]);
                     close(fd_client);
                     continue;
                 }
                 strcpy(service->name, command_list[1]);
                 
                 if (find_service_index_by_name(&sa, service->name) != -1) {
-                    printf("not starting service: (%s is already running)\n", service->name);
+                    printf("not starting service: %s is already running\n", service->name);
                     close(fd_client);
                     continue;
                 } 
@@ -141,7 +161,7 @@ int main(void) {
                 
                 start_service(service, child_pipefds);
                 if (add_service_to_array(&sa, *service) == -2) {
-                    printf("couldn't start service %s (reached max service number %i)\n", service->name, MAX_SERVICE_ARRAY_SIZE);
+                    printf("error: couldn't start service %s because max service number %i has been reached\n", service->name, MAX_SERVICE_ARRAY_SIZE);
                     close(fd_client);
                     continue;
                 }
@@ -149,7 +169,7 @@ int main(void) {
     
             if (!strcmp(command_list[0], "service-stop")) {
                 if (find_service_index_by_name(&sa, command_list[1]) == -1) {
-                    printf("couldn't stop service: %s (service not running)\n", command_list[1]);
+                    printf("error: couldn't stop service: %s service not running\n", command_list[1]);
                     close(fd_client);
                     continue;
                 }
