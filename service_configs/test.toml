@@ -3,3 +3,5 @@ command = "/bin/cat"
 args = ""
 working_directory = "/tmp"
 [io]
+stdout = "/dev/null"
+stderr = "/dev/null"
