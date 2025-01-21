@@ -43,7 +43,7 @@ int setup_socket() {
     return sockfd;
 }
 
-void signal_handler(int sig) {
+void signal_handler(int sig) { 
     switch (sig) {
         case SIGINT:
             running = 0;
@@ -56,23 +56,16 @@ void signal_handler(int sig) {
 
 void start_autostart_services() {
     printf("attempting to start autostart services\n");
+    
     FILE *fp_autostart_list = fopen(SERVICE_AUTOSTART_LIST_FILE, "r");
     if (fp_autostart_list == NULL) {
         fprintf(stderr, "error: couldn't open %s\n", SERVICE_AUTOSTART_LIST_FILE);
         return;
     }
-    /*  todo: 
-            - read SERVICE_AUTOSTART_LIST_FILE to a string.
-            - split the string on "\n" into an array of substrings.
-            - for each substring start the service with its name.
-    */
 
-    char file_contents[] = "teeworlds\napp\ndwadw\n"; // placeholder
+    char file_contents[MAX_AUTOSTART_SERVICE_FILE_LENGTH];
     // read the fp_autostart_list to the file_contents
 
-    if (file_contents == NULL) {
-        fprintf(stderr, "error: couldn't read contents of %s\n", SERVICE_AUTOSTART_LIST_FILE);
-    }
     char *service_name_token;
     char *save_ptr = file_contents;
 
