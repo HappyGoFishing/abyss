@@ -1,3 +1,5 @@
 [program]
 command = "/bin/cat"
 args = ""
+working_directory = "/tmp"
+[io]

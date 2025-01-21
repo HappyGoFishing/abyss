@@ -18,8 +18,8 @@ static bool running = false;
 
 int setup_socket() {
     unlink(SOCKET_PATH);
-    int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd == -1) {
+    int fd_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (fd_sock == -1) {
         perror("socket");
         return -1;
     }
@@ -28,19 +28,19 @@ int setup_socket() {
     addr.sun_family = AF_UNIX;
     strcpy(addr.sun_path, SOCKET_PATH);
 
-    if (bind(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
+    if (bind(fd_sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
         perror("bind");
         return -1;
     }
-    if (listen(sockfd, 1) == -1) {
+    if (listen(fd_sock, 1) == -1) {
         perror("listen");
         return -1;
     }
-    if (fcntl(sockfd, F_SETFL, O_NONBLOCK) == -1) {
+    if (fcntl(fd_sock, F_SETFL, O_NONBLOCK) == -1) {
         perror("fcntl");
         return -1;
     }
-    return sockfd;
+    return fd_sock;
 }
 
 void signal_handler(int sig) { 
@@ -57,23 +57,23 @@ void signal_handler(int sig) {
 void start_autostart_services() {
     printf("attempting to start autostart services\n");
     
-    FILE *fp_autostart_list = fopen(SERVICE_AUTOSTART_LIST_FILE, "r");
-    if (fp_autostart_list == NULL) {
+    FILE *fp = fopen(SERVICE_AUTOSTART_LIST_FILE, "r");
+    if (fp == NULL) {
         fprintf(stderr, "error: couldn't open %s\n", SERVICE_AUTOSTART_LIST_FILE);
         return;
     }
 
-    char file_contents[MAX_AUTOSTART_SERVICE_FILE_LENGTH];
+    char file_contents[MAX_AUTOSTART_SERVICE_FILE_LENGTH] = "test";
     // read the fp_autostart_list to the file_contents
 
-    char *service_name_token;
+    char *name_token;
     char *save_ptr = file_contents;
 
-    for (int i = 0; (service_name_token = strtok_r(save_ptr, "\n", &save_ptr)); i++) {
+    for (int i = 0; (name_token = strtok_r(save_ptr, "\n", &save_ptr)); i++) {
         
-        struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, service_name_token);
+        struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, name_token);
         if (service == NULL) {
-            fprintf(stderr, "error: couldn't read service config for %s\n", service_name_token);
+            fprintf(stderr, "error: couldn't read service config for %s\n", name_token);
             continue;
         }
     }
@@ -89,9 +89,9 @@ int main(void) {
     } else {
         printf("listening on bound socket: %s\n", SOCKET_PATH);
     }
+    
     struct ServiceArray sa = { .size = 0 }; // the services currently active
     
-
     struct pollfd fds[1];
     fds[0].fd = fd_sock;
     fds[0].events = POLLIN;
@@ -116,10 +116,11 @@ int main(void) {
                 perror("accept");
                 continue;
             }
+            
             char buffer[BUFFER_SIZE] = "";
             receive_message(fd_client, buffer, BUFFER_SIZE);
+            
             char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
-            // reset command_list to empty by null terminating each string
             for (int i = 0; i < MAX_COMMAND_LIST_SIZE; i++) {
                 command_list[i][0] = '\0';
             }

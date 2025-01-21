@@ -46,14 +46,12 @@ void start_service(struct Service *service, int *child_pipefds) {
         service->pid = getpid();
         printf("PID of service %s is: %i\n", service->name, service->pid);
         
-        int stdout_redirect = open("/dev/null", O_WRONLY);
-        int stderr_redirect = open("/dev/null", O_WRONLY);
+        int fd_devnull = open("/dev/null", O_WRONLY);
         
-        dup2(stdout_redirect, STDOUT_FILENO);
-        dup2(stderr_redirect, STDERR_FILENO);
+        dup2(fd_devnull, STDOUT_FILENO);
+        dup2(fd_devnull, STDERR_FILENO);
         
-        close(stdout_redirect);
-        close(stderr_redirect);
+        close(fd_devnull);
 
         close(child_pipefds[0]);
         write(child_pipefds[1], &service->pid, sizeof(service->pid));
