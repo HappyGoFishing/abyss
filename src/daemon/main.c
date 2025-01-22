@@ -12,6 +12,7 @@
 
 #include "constant_defines.h"
 #include "../shared/util.h"
+#include "../shared/config.h"
 #include "service.h"
 
 static bool running = false;
@@ -101,6 +102,7 @@ void start_autostart_services(struct ServiceArray* sa) {
 
         if (find_service_index_by_name(sa, service->name) != -1) {
             fprintf(stderr, "error: couldn't start %s service already running\n", service->name);
+            free(service);
             continue;
         }
 
@@ -108,14 +110,16 @@ void start_autostart_services(struct ServiceArray* sa) {
         int child_pipefds[2]; // used by child to send pid back to parent after fork
         if (pipe(child_pipefds) == -1) {
             perror("pipe");
-            continue;
-        }
-        start_service(service, child_pipefds);
-        if (add_service_to_array(sa, *service) == -2) {
-            printf("error: couldn't start service %s because max service number %i has been reached\n", service->name, MAX_SERVICE_ARRAY_SIZE);
+            free(service);
             continue;
         }
 
+        start_service(service, child_pipefds);
+        if (add_service_to_array(sa, *service) == -2) {
+            fatal_panic("service array somehow at max size during autostart phase");
+        }
+        
+        free(service);
     }
 }
 
@@ -130,7 +134,7 @@ int main(void) {
         printf("listening on bound socket: %s\n", SOCKET_PATH);
     }
     
-    struct ServiceArray sa = { .size = 0 }; // the services currently active
+    struct ServiceArray sa = { .size = MAX_SERVICE_ARRAY_SIZE }; // the services currently active
     
     struct pollfd fds[1];
     fds[0].fd = fd_sock;

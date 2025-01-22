@@ -4,12 +4,14 @@
 #include <sys/socket.h>
 
 #include "util.h"
+#include "config.h"
 
 void fatal_panic(const char* msg) {
-    fprintf(stderr, "fatal panic! ");
-    if (msg != NULL) {
-        perror(msg);
-    }
+#ifdef DISABLE_CONSOLE_COLOUR_OUTPUT
+    fprintf(stderr, "FATAL PANIC: %s\n", msg);
+#else
+    fprintf(stderr, "\x1b[31mFATAL PANIC!\x1b[0m %s\n", msg);
+#endif
     exit(EXIT_FAILURE);
 }
 
