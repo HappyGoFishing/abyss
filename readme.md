@@ -9,4 +9,4 @@ Abyss is a service management daemon for Linux and other Unix systems written in
 - very few dependencies
 
 ## Disclaimer
-This project exists because I wanted to improve at C and learn UNIX systems programming, this is amateur software written by a hobbyist programmer, do not blindly trust this codebase.
+This project exists because I wanted to improve at C and learn UNIX systems programming. This is amateur software written by a hobbyist programmer, do not blindly trust this codebase.
