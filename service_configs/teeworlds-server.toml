@@ -1,0 +1,3 @@
+[program]
+command = "/usr/games/teeworlds-server"
+args = "--host localhost"

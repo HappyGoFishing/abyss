@@ -54,7 +54,7 @@ void signal_handler(int sig) {
     }
 }
 
-void start_autostart_services() {
+void start_autostart_services(struct ServiceArray* sa) {
     printf("attempting to start autostart services\n");
     
     FILE *fp = fopen(SERVICE_AUTOSTART_LIST_FILE, "rb");
@@ -64,7 +64,7 @@ void start_autostart_services() {
     }
     
     if (fseek(fp, 0, SEEK_END) != 0) {
-        perror("fseek");
+        perror("error: fseek");
         fclose(fp);
         return;
     }
@@ -89,16 +89,34 @@ void start_autostart_services() {
     char *name_token;
     char *save_ptr = rdbuf;
 
-    for (int i = 0; (name_token = strtok_r(save_ptr, "\n", &save_ptr)); i++) {
+    while ((name_token = strtok_r(save_ptr, "\n", &save_ptr)) != NULL) {
         
         struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, name_token);
         if (service == NULL) {
             fprintf(stderr, "error: couldn't read service config for %s\n", name_token);
             continue;
         }
-    }
+        
+        strcpy(service->name, name_token);
 
-    
+        if (find_service_index_by_name(sa, service->name) != -1) {
+            fprintf(stderr, "error: couldn't start %s service already running\n", service->name);
+            continue;
+        }
+
+        printf("starting service: %s\n\tcommand=%s\n\targs=%s\n", service->name, service->command, service->args);
+        int child_pipefds[2]; // used by child to send pid back to parent after fork
+        if (pipe(child_pipefds) == -1) {
+            perror("pipe");
+            continue;
+        }
+        start_service(service, child_pipefds);
+        if (add_service_to_array(sa, *service) == -2) {
+            printf("error: couldn't start service %s because max service number %i has been reached\n", service->name, MAX_SERVICE_ARRAY_SIZE);
+            continue;
+        }
+
+    }
 }
 
 int main(void) {
@@ -120,7 +138,7 @@ int main(void) {
 
     bool running = true;
     
-    start_autostart_services();
+    start_autostart_services(&sa);
 
     while (running) {
         int poll_ret = poll(fds, 1, -1);
