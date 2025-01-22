@@ -128,19 +128,18 @@ int main(void) {
 
     int fd_sock = setup_socket();
     if (fd_sock == -1) {
-        fprintf(stderr, "error: failed to bind socket\n");
-        exit(EXIT_FAILURE);
-    } else {
-        printf("listening on bound socket: %s\n", SOCKET_PATH);
+        fatal_panic("failed to bind to socket");
     }
     
-    struct ServiceArray sa = { .size = MAX_SERVICE_ARRAY_SIZE }; // the services currently active
+    printf("listening on bound socket: %s\n", SOCKET_PATH);
     
     struct pollfd fds[1];
     fds[0].fd = fd_sock;
     fds[0].events = POLLIN;
 
     bool running = true;
+
+    struct ServiceArray sa = { .size = MAX_SERVICE_ARRAY_SIZE }; // the services currently active
     
     start_autostart_services(&sa);
 
