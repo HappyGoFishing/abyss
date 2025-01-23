@@ -1,6 +1,5 @@
 #include <fcntl.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,13 +8,14 @@
 #include <poll.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include "constant_defines.h"
 #include "../shared/util.h"
 #include "../shared/config.h"
 #include "service.h"
 
-static bool running = false;
+static int running = 0;
 
 int setup_socket() {
     unlink(SOCKET_PATH);
@@ -71,6 +71,7 @@ void start_autostart_services(struct ServiceArray* sa) {
     }
 
     long fsize = ftell(fp);
+    
     if (fseek(fp, 0, SEEK_SET) != 0) {
         perror("error: fseek");
         fclose(fp);
@@ -137,9 +138,9 @@ int main(void) {
     fds[0].fd = fd_sock;
     fds[0].events = POLLIN;
 
-    bool running = true;
+    running = 1;
 
-    struct ServiceArray sa = { .size = MAX_SERVICE_ARRAY_SIZE }; // the services currently active
+    struct ServiceArray sa = { .size = 0 }; // the services currently active
     
     start_autostart_services(&sa);
 
