@@ -43,6 +43,8 @@ char ** argv_from_args_string(const char *args_str) {
 
 void start_service(struct Service *service, int *child_pipefds) {
     pid_t pid = fork();
+    char **argv;
+
     if (pid == 0) {
         service->pid = getpid();
         printf("PID of service %s is: %i\n", service->name, service->pid);
@@ -58,7 +60,7 @@ void start_service(struct Service *service, int *child_pipefds) {
         write(child_pipefds[1], &service->pid, sizeof(service->pid));
         close(child_pipefds[1]);
 
-        char **argv = argv_from_args_string(service->args);
+        argv = argv_from_args_string(service->args);
         if (argv == NULL) {
             fprintf(stderr, "failed to start service: argv_from_args_string NULL");
             return;
@@ -73,9 +75,11 @@ void start_service(struct Service *service, int *child_pipefds) {
         perror("fork");
     } else {
         close(child_pipefds[1]);
-
         read(child_pipefds[0], &service->pid, sizeof(service->pid));
         close(child_pipefds[0]);
+        
+        // I KNOW THAT ARGV IS A MEMORY LEAK.
+        // I WILL FREE IT PROPERLY EVENTUALLY.
     }
 }
 
