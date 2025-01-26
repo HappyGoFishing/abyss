@@ -40,6 +40,7 @@ char ** argv_from_args_string(const char *args_str) {
     return argv;
 }
 
+
 void start_service(struct Service *service, int *child_pipefds) {
     pid_t pid = fork();
     if (pid == 0) {
@@ -77,6 +78,7 @@ void start_service(struct Service *service, int *child_pipefds) {
         close(child_pipefds[0]);
     }
 }
+
 
 int stop_service(const char *service_name, struct ServiceArray *sa) {
     int i = find_service_index_by_name(sa, service_name);
