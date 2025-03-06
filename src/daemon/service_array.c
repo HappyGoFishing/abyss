@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "service.h"
+#include "constant_defines.h"
 
 int find_service_index_by_name(struct ServiceArray *sa, const char *service_name) {
     for (size_t i = 0; i < sa->size; i++) {
@@ -9,19 +10,19 @@ int find_service_index_by_name(struct ServiceArray *sa, const char *service_name
             return i;
         }
     }
-    return -1; //service is not in array
+    return RESULT_SERVICE_NOT_IN_ARRAY; //service is not in array
 }
 
 int add_service_to_array(struct ServiceArray *sa, struct Service service) {
     if (sa->size >= MAX_SERVICE_ARRAY_SIZE) {
-        return -2; //cant add service, reached max service limit
+        return RESULT_SERVICE_ARRAY_REACHED_LIMIT; //cant add service, reached max service limit
     }
     if (find_service_index_by_name(sa, service.name) != -1) {
-        return -1; //cant add service, service is already in array
+        return RESULT_SERVICE_ALREADY_IN_ARRAY; //cant add service, service is already in array
     }
     sa->array[sa->size] = service;
     sa->size++;
-    return 0; //added service to array
+    return RESULT_SUCCESS; //added service to array
 }
 
 int remove_service_from_array(struct ServiceArray *sa, const char *service_name) {
@@ -31,7 +32,7 @@ int remove_service_from_array(struct ServiceArray *sa, const char *service_name)
             sa->array[i] = sa->array[i + 1];
         }
         sa->size--;
-        return 0; //removed service from array
+        return RESULT_SUCCESS; //removed service from array
     } 
-    return -1; //cant remove service because its not in array
+    return RESULT_SERVICE_NOT_IN_ARRAY; //cant remove service because its not in array
 }

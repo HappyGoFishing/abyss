@@ -62,24 +62,22 @@ void start_service(struct Service *service, int *child_pipefds) {
 
         argv = argv_from_args_string(service->args);
         if (argv == NULL) {
-            fprintf(stderr, "failed to start service: argv_from_args_string NULL");
+            fprintf(stderr, "error starting service: service args is null");
             return;
         }
         argv[0] = service->command;
-
         execve(service->command, argv, NULL);
-        perror("execl");
+        perror("error execve");
 
         exit(EXIT_FAILURE);
     } else if (pid < 0) {
-        perror("fork");
+        perror("error fork");
     } else {
         close(child_pipefds[1]);
         read(child_pipefds[0], &service->pid, sizeof(service->pid));
         close(child_pipefds[0]);
         
-        // I KNOW THAT ARGV IS A MEMORY LEAK.
-        // I WILL FREE IT PROPERLY EVENTUALLY.
+        // argv causes memory leak, eventually should fix it.
     }
 }
 
@@ -89,7 +87,9 @@ int stop_service(const char *service_name, struct ServiceArray *sa) {
     kill(sa->array[i].pid, SIGTERM);
     waitpid(sa->array[i].pid, NULL, 0);
     printf("stopped service: %s (pid terminated %i)\n", service_name, sa->array[i].pid);
-    return 0; // the return code of the pid
+    
+    // placeholder return because eventually i want to return pid's exit status
+    return 0;
 }
 
 

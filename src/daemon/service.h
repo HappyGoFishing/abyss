@@ -5,6 +5,13 @@
 
 #include "constant_defines.h"
 
+// result codes returned from functions to make error checking less arcane
+#define RESULT_SERVICE_NOT_IN_ARRAY -1
+#define RESULT_SERVICE_ARRAY_REACHED_LIMIT -2
+#define RESULT_SERVICE_ALREADY_IN_ARRAY -3
+#define RESULT_SUCCESS 0
+
+
 struct Service {
     char command[MAX_SERVICE_COMMAND_LENGTH];
     char args[MAX_SERVICE_ARGS_LENGTH];
