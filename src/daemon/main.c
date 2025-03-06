@@ -126,7 +126,9 @@ void start_autostart_services(struct ServiceArray* sa) {
 
 int main(void) {
     signal(SIGINT, signal_handler);
-
+    openlog("abyssd", LOG_PID | LOG_CONS, LOG_DAEMON);
+    // log_message(LOG_INFO, "started abyssd daemon");
+    // for some reason writing to syslog causes some sort of string/memory corruption
     int fd_sock = setup_socket();
     if (fd_sock == -1) {
         fatal_panic("failed to bind to socket");
@@ -226,5 +228,6 @@ int main(void) {
     printf("\nunlinking %s\n", SOCKET_PATH);
     unlink(SOCKET_PATH);
     printf("goodbye\n");
+    closelog();
     return 0;
 }
