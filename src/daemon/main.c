@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <assert.h>
+#include <syslog.h>
 
 #include "constant_defines.h"
 #include "../shared/util.h"

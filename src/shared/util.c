@@ -1,9 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+#include <syslog.h>
 #include <sys/socket.h>
 
 #include "util.h"
+
+void log_message(int priority, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    vsyslog(priority, format, args);
+
+#ifdef DEBUG
+    vfprintf(stderr, format, args);
+    fprintf(stderr, "\n");
+#endif
+
+    va_end(args);
+}
+
 
 void fatal_panic(const char* msg) {
     fprintf(stderr, "FATAL PANIC: %s\n", msg);
