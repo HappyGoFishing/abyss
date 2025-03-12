@@ -11,7 +11,8 @@
 #include <unistd.h>
 #include <assert.h>
 #include <syslog.h>
-
+#include <errno.h>
+#include <stddef.h>
 #include "constant_defines.h"
 #include "../shared/util.h"
 #include "service.h"
@@ -22,7 +23,7 @@ int setup_socket() {
     unlink(SOCKET_PATH);
     int fd_sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd_sock == -1) {
-        perror("error socket");
+        log_message(LOG_ERR, "error: socket %s", strerror(errno));
         return -1;
     }
     struct sockaddr_un addr;
@@ -31,15 +32,15 @@ int setup_socket() {
     strcpy(addr.sun_path, SOCKET_PATH);
 
     if (bind(fd_sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
-        perror("error bind");
+        log_message(LOG_ERR, "error: bind %s", strerror(errno));
         return -1;
     }
     if (listen(fd_sock, 1) == -1) {
-        perror("error listen");
+        log_message(LOG_ERR, "error: listen %s", strerror(errno));
         return -1;
     }
     if (fcntl(fd_sock, F_SETFL, O_NONBLOCK) == -1) {
-        perror("error fcntl");
+        log_message(LOG_ERR, "error: fcntl %s", strerror(errno));
         return -1;
     }
     return fd_sock;
@@ -66,7 +67,7 @@ void start_autostart_services(struct ServiceArray* sa) {
     }
     
     if (fseek(fp, 0, SEEK_END) != 0) {
-        perror("error fseek");
+        log_message(LOG_ERR, "error: fseek %s", strerror(errno));
         fclose(fp);
         return;
     }
@@ -74,25 +75,26 @@ void start_autostart_services(struct ServiceArray* sa) {
     long fsize = ftell(fp);
     
     if (fseek(fp, 0, SEEK_SET) != 0) {
-        perror("error fseek");
+        log_message(LOG_ERR, "error: fseek %s", strerror(errno));
         fclose(fp);
         return;
     }
     
     char *rdbuf = malloc(fsize + 1);
     if (rdbuf == NULL) {
-        perror("error malloc");
+        log_message(LOG_ERR, "error: malloc %s", strerror(errno));
         fclose(fp);
         return;
     }
 
     if (fread(rdbuf, 1, fsize, fp) != (size_t) fsize) {
-        log_message(LOG_ERR, "error: failed to read full file %s", SERVICE_AUTOSTART_LIST_FILE);
+        log_message(LOG_ERR, "error: fread %s (%s)", strerror(errno), SERVICE_AUTOSTART_LIST_FILE);
         free(rdbuf);
         fclose(fp);
         return;
     }
     fclose(fp);
+
     rdbuf[fsize] = '\0';
     char *name_token;
     char *save_ptr = rdbuf;
@@ -116,14 +118,14 @@ void start_autostart_services(struct ServiceArray* sa) {
         log_message(LOG_INFO, "starting service: %s command=%s args=%s", service->name, service->command, service->args);
         int child_pipefds[2]; // used by child to send pid back to parent after fork
         if (pipe(child_pipefds) == -1) {
-            perror("pipe");
+            log_message(LOG_ERR, "error: pipe %s", strerror(errno));
             free(service);
             continue;
         }
 
         start_service(service, child_pipefds);
         if (add_service_to_array(sa, *service) == RESULT_SERVICE_ARRAY_REACHED_LIMIT) {
-            fatal_panic("service array somehow at max size during autostart phase");
+            log_crash_message("service array somehow at max size during autostart phase");
         }
         
         free(service);
@@ -137,10 +139,10 @@ int main(void) {
     
     int fd_sock = setup_socket();
     if (fd_sock == -1) {
-        fatal_panic("failed to bind to socket");
+        log_crash_message("failed to bind to socket %s", SOCKET_PATH);
     }
     
-    log_message(LOG_INFO, "abyssd started, listening on bound socket: %s\n", SOCKET_PATH);
+    log_message(LOG_INFO, "abyssd started, listening on bound socket: %s", SOCKET_PATH);
     
     struct pollfd fds[1];
     fds[0].fd = fd_sock;
@@ -155,7 +157,7 @@ int main(void) {
     while (running) {
         int poll_ret = poll(fds, 1, -1);
         if (poll_ret == -1) {
-            perror("error poll");
+            log_message(LOG_ERR, "error: poll %s", strerror(errno));
             break;
         }
 
@@ -165,7 +167,7 @@ int main(void) {
             socklen_t client_addr_len = sizeof(client_addr);
             int fd_client;
             if ((fd_client = accept(fd_sock, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
-                perror("error accept");
+                log_message(LOG_ERR, "error: accept %s", strerror(errno));
                 continue;
             }
             
@@ -186,28 +188,28 @@ int main(void) {
             if (!strcmp(command_list[0], "service-start")) {
                 struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, command_list[1]);
                 if (service == NULL) {
-                    log_message(LOG_ERR, "error: couldn't read service config for %s\n", command_list[1]);
+                    log_message(LOG_ERR, "error: couldn't read service config for %s", command_list[1]);
                     close(fd_client);
                     continue;
                 }
                 strcpy(service->name, command_list[1]);
                 
                 if (find_service_index_by_name(&sa, service->name) != RESULT_SERVICE_NOT_IN_ARRAY) {
-                    log_message(LOG_INFO, "not starting service: %s is already running\n", service->name);
+                    log_message(LOG_INFO, "not starting service: %s is already running", service->name);
                     close(fd_client);
                     continue;
                 } 
-                log_message(LOG_INFO, "starting service: %s\n\tcommand=%s\n\targs=%s\n", service->name, service->command, service->args);
+                log_message(LOG_INFO, "starting service: %s\n\tcommand=%s\n\targs=%s", service->name, service->command, service->args);
                 int child_pipefds[2]; // used by child to send pid back to parent after fork
                 if (pipe(child_pipefds) == -1) {
-                    perror("error pipe");
+                    log_message(LOG_ERR, "error: pipe %s", strerror(errno));
                     close(fd_client);
                     continue;
                 }
                 
                 start_service(service, child_pipefds);
                 if (add_service_to_array(&sa, *service) == RESULT_SERVICE_ARRAY_REACHED_LIMIT) {
-                    log_message(LOG_ERR, "error: couldn't start service %s because max service number %i has been reached\n", service->name, MAX_SERVICE_ARRAY_SIZE);
+                    log_message(LOG_ERR, "error: couldn't start service %s because max service number %i has been reached", service->name, MAX_SERVICE_ARRAY_SIZE);
                     close(fd_client);
                     continue;
                 }
@@ -215,7 +217,7 @@ int main(void) {
     
             if (!strcmp(command_list[0], "service-stop")) {
                 if (find_service_index_by_name(&sa, command_list[1]) == RESULT_SERVICE_NOT_IN_ARRAY) {
-                    log_message(LOG_INFO, "couldn't stop service: %s service was not running\n", command_list[1]);
+                    log_message(LOG_INFO, "couldn't stop service: %s service was not running", command_list[1]);
                     close(fd_client);
                     continue;
                 }
@@ -231,9 +233,8 @@ int main(void) {
             close(fd_client);
         }
     }
-    log_message(LOG_INFO, "\nunlinking %s\n", SOCKET_PATH);
+    log_message(LOG_INFO, "abyssd stopping, goodbye. (unlinking %s)", SOCKET_PATH);
     unlink(SOCKET_PATH);
-    log_message(LOG_INFO, "abyssd stopping, goodbye\n");
     closelog();
     return 0;
 }

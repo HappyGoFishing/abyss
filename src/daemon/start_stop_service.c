@@ -12,6 +12,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <syslog.h>
+#include <errno.h>
 
 #include "../shared/util.h"
 
@@ -42,12 +44,17 @@ char ** argv_from_args_string(const char *args_str) {
 
 
 void start_service(struct Service *service, int *child_pipefds) {
+    if (service == NULL) {
+        log_message(LOG_ERR, "error: failed to start a service, service pointer null");
+        return;
+    }
+
     pid_t pid = fork();
     char **argv;
-
+    
     if (pid == 0) {
         service->pid = getpid();
-        printf("PID of service %s is: %i\n", service->name, service->pid);
+        log_message(LOG_INFO, "service: %s PID=%i", service->name, service->pid);
         
         int fd_devnull = open("/dev/null", O_WRONLY);
         
@@ -62,16 +69,17 @@ void start_service(struct Service *service, int *child_pipefds) {
 
         argv = argv_from_args_string(service->args);
         if (argv == NULL) {
-            fprintf(stderr, "error starting service: service args is null");
+            log_message(LOG_ERR, "error: couldnt start service %s malformed argv", service->name);
             return;
         }
         argv[0] = service->command;
         execve(service->command, argv, NULL);
-        perror("error execve");
+        log_message(LOG_ERR, "error: execve %s", strerror(errno));
 
         exit(EXIT_FAILURE);
     } else if (pid < 0) {
-        perror("error fork");
+        log_message(LOG_ERR, "error: fork %s", strerror(errno));
+
     } else {
         close(child_pipefds[1]);
         read(child_pipefds[0], &service->pid, sizeof(service->pid));
@@ -86,7 +94,7 @@ int stop_service(const char *service_name, struct ServiceArray *sa) {
     int i = find_service_index_by_name(sa, service_name);
     kill(sa->array[i].pid, SIGTERM);
     waitpid(sa->array[i].pid, NULL, 0);
-    printf("stopped service: %s (pid terminated %i)\n", service_name, sa->array[i].pid);
+    log_message(LOG_INFO, "stopped service: %s (pid terminated %i)", service_name, sa->array[i].pid);
     
     // placeholder return because eventually i want to return pid's exit status
     return 0;
