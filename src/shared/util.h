@@ -1,6 +1,6 @@
 #pragma once
 #include <sys/types.h>
-
+#include <syslog.h>
 void log_message(int priority, const char *format, ...);
 void log_crash_message(const char *format, ...);
 void strip_whitespace(char* msg);

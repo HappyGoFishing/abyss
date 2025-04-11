@@ -7,7 +7,7 @@
 
 struct Service *read_service_toml_file(const char *dirname, const char *filename) {
     if (!dirname || !filename) {
-        fprintf(stderr, "filename or dirname is NULL\n");
+        log_message(LOG_ERR, "filename or dirname is NULL");
         return NULL;
     }
     
@@ -15,7 +15,7 @@ struct Service *read_service_toml_file(const char *dirname, const char *filename
     size_t filename_len = strlen(filename);
 
     if (dirname_len + filename_len + 6 >= MAX_PATH_LENGTH) {
-        fprintf(stderr, "error: path to toml larger than %i\n", MAX_PATH_LENGTH);
+        log_message(LOG_ERR, "error: path to toml larger than %i", MAX_PATH_LENGTH);
         return NULL;
     }
 
@@ -32,41 +32,41 @@ struct Service *read_service_toml_file(const char *dirname, const char *filename
 
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {
-        fprintf(stderr, "failed to open service file: %s\n", path);
+        log_message(LOG_ERR, "failed to open service file: %s", path);
         return NULL;
     }
 
-    printf("found service file: %s\n", path);
+    log_message(LOG_INFO, "found service file: %s", path);
 
     char errbuf[200];
     toml_table_t *toml = toml_parse_file(fp, errbuf, sizeof(errbuf));
     fclose(fp);
     if (!toml) {
-        fprintf(stderr, "%s\n", errbuf);
+        log_message(LOG_ERR, "%s", errbuf);
         return NULL;
     }
 
     toml_table_t *program = toml_table_in(toml, "program");
     if (!program) {
-        fprintf(stderr, "could not find table [program] in %s\n", path);
+        log_message(LOG_ERR, "could not find table [program] in %s", path);
         goto cleanup_toml;
     }
 
     toml_datum_t command = toml_string_in(program, "command");
     if (!command.ok) {
-        fprintf(stderr, "could not find string command in %s\n", path);
+        log_message(LOG_ERR, "could not find string command in %s", path);
         goto cleanup_toml;
     }
 
     toml_datum_t args = toml_string_in(program, "args");
     if (!args.ok) {
-        fprintf(stderr, "could not find string args in %s\n", path);
+        log_message(LOG_ERR, "could not find string args in %s", path);
         goto cleanup_command;
     }
 
     struct Service *service = malloc(sizeof(struct Service));
     if (!service) {
-        fprintf(stderr, "failed to allocate memory for service\n");
+        log_message(LOG_ERR, "failed to allocate memory for service");
         goto cleanup_args;
     }
 
