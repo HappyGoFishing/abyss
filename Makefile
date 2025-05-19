@@ -5,7 +5,7 @@ VENDOR_SRC := $(shell find src/vendor -name "*.c")
 CLIENT_SRC := $(shell find src/client -name "*.c")
 DAEMON_SRC := $(shell find src/daemon -name "*.c")
 
-BIN_DIR = bin
+BIN_DIR = out
 
 DAEMON_BIN_NAME = abyssd
 CLIENT_BIN_NAME = abyssctl
@@ -16,7 +16,7 @@ default:
 	ls $(BIN_DIR)
 
 clean:
-	rm -rf bin
+	rm -rf $(BIN_DIR)
 
 client:
 	mkdir -p $(BIN_DIR)

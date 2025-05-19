@@ -1,0 +1,57 @@
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <errno.h>
+#include <syslog.h>
+#include <stdio.h>
+#include <unistd.h>
+#include "daemon.h"
+
+
+int setup_socket() {
+    unlink(SOCKET_PATH);
+    int fd_sock = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (fd_sock == -1) {
+        log_message(LOG_ERR, "error: socket %s", strerror(errno));
+        return -1;
+    }
+    struct sockaddr_un addr;
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strcpy(addr.sun_path, SOCKET_PATH);
+
+    if (bind(fd_sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
+        log_message(LOG_ERR, "error: bind %s", strerror(errno));
+        return -1;
+    }
+    if (listen(fd_sock, 1) == -1) {
+        log_message(LOG_ERR, "error: listen %s", strerror(errno));
+        return -1;
+    }
+    if (fcntl(fd_sock, F_SETFL, O_NONBLOCK) == -1) {
+        log_message(LOG_ERR, "error: fcntl %s", strerror(errno));
+        return -1;
+    }
+    return fd_sock;
+}
+
+int send_socket(int sock_fd, const char *msg) {
+    ssize_t msg_size = strlen(msg);
+    ssize_t sent_bytes = send(sock_fd, msg, msg_size, 0);
+    if (sent_bytes == -1) {
+        log_message(LOG_ERR, "recv send %s", strerror(errno));
+        return -1;
+    }
+    return 0;
+}
+
+ssize_t recv_socket(int sock_fd, char *response_buffer, size_t max_len) {
+    ssize_t bytes_received = recv(sock_fd, response_buffer, max_len - 1, 0);
+    if (bytes_received == -1) {
+        log_message(LOG_ERR, "recv error %s", strerror(errno));
+        return -1;
+    } else {
+        response_buffer[bytes_received] = '\0';
+        strip_whitespace(response_buffer);
+    }
+    return bytes_received;
+}

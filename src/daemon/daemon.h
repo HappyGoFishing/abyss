@@ -5,9 +5,9 @@
 #define SOCKET_PATH "/tmp/abyss.sock"
 #define BUFFER_SIZE 1024
 #define MAX_COMMAND_LIST_SIZE 2
-#define SERVICE_AUTOSTART_LIST_FILE "./service_configs/autostart.txt"
+#define SERVICE_AUTOSTART_LIST_FILE "./etc/abyss/services/autostart.txt"
 #define MAX_AUTOSTART_SERVICES 32
-#define SERVICE_CONFIG_DIR_PATH "./service_configs"
+#define SERVICES_DIR_PATH "./etc/abyss/services"
 #define MAX_PATH_LENGTH 1024
 #define MAX_SERVICE_ARRAY_SIZE 128 
 #define MAX_SERVICE_COMMAND_LENGTH 128
@@ -15,13 +15,13 @@
 #define MAX_SERVICE_NAME_LENGTH 64
 #define MAX_ARGS MAX_SERVICE_ARGS_LENGTH / 2 
 
-
+int setup_socket();
 int send_socket(int sock_fd, const char* msg);
 ssize_t recv_socket(int sock_fd, char* response_buffer, size_t max_len);
 
 void log_message(int priority, const char *format, ...);
 void log_crash_message(const char *format, ...);
-
+void strip_whitespace(char *str);
 
 // result codes returned from functions to make error checking less arcane
 #define RESULT_SERVICE_NOT_IN_ARRAY -1

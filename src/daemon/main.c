@@ -17,33 +17,6 @@
 
 static int running = 0;
 
-int setup_socket() {
-    unlink(SOCKET_PATH);
-    int fd_sock = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (fd_sock == -1) {
-        log_message(LOG_ERR, "error: socket %s", strerror(errno));
-        return -1;
-    }
-    struct sockaddr_un addr;
-    memset(&addr, 0, sizeof(struct sockaddr_un));
-    addr.sun_family = AF_UNIX;
-    strcpy(addr.sun_path, SOCKET_PATH);
-
-    if (bind(fd_sock, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
-        log_message(LOG_ERR, "error: bind %s", strerror(errno));
-        return -1;
-    }
-    if (listen(fd_sock, 1) == -1) {
-        log_message(LOG_ERR, "error: listen %s", strerror(errno));
-        return -1;
-    }
-    if (fcntl(fd_sock, F_SETFL, O_NONBLOCK) == -1) {
-        log_message(LOG_ERR, "error: fcntl %s", strerror(errno));
-        return -1;
-    }
-    return fd_sock;
-}
-
 void signal_handler(int sig) { 
     switch (sig) {
         case SIGINT:
@@ -99,7 +72,7 @@ void start_autostart_services(struct ServiceArray* sa) {
 
     while ((name_token = strtok_r(save_ptr, "\n", &save_ptr)) != NULL) {
         
-        struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, name_token);
+        struct Service *service = read_service_toml_file(SERVICES_DIR_PATH, name_token);
         if (service == NULL) {
             log_message(LOG_ERR, "error: couldn't read service config for %s", name_token);
             continue;
@@ -184,7 +157,7 @@ int main(void) {
             }
             
             if (!strcmp(command_list[0], "service-start")) {
-                struct Service *service = read_service_toml_file(SERVICE_CONFIG_DIR_PATH, command_list[1]);
+                struct Service *service = read_service_toml_file(SERVICES_DIR_PATH, command_list[1]);
                 if (service == NULL) {
                     log_message(LOG_ERR, "error: couldn't read service config for %s", command_list[1]);
                     close(fd_client);
