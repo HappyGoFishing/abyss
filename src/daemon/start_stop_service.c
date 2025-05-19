@@ -15,7 +15,7 @@
 #include <syslog.h>
 #include <errno.h>
 
-#include "../shared/util.h"
+#include "../vendor/util.h"
 
 char ** argv_from_args_string(const char *args_str) {
     if (args_str == NULL) {

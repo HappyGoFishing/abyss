@@ -5,7 +5,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "../shared/util.h"
+#include "../vendor/util.h"
 
 #define SOCKET_PATH "/tmp/abyss.sock"
 #define BUFFER_SIZE 1024

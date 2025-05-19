@@ -1,9 +1,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "../shared/tomlc99/toml.h"
+#include "../vendor/tomlc99/toml.h"
 #include "service.h"
-#include "../shared/util.h"
+#include "../vendor/util.h"
 
 struct Service *read_service_toml_file(const char *dirname, const char *filename) {
     if (!dirname || !filename) {

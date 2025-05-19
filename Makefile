@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra 
 
-SHARED_SRC := $(shell find src/shared -name "*.c") 
+SHARED_SRC := $(shell find src/vendor -name "*.c") 
 CLIENT_SRC := $(shell find src/client -name "*.c")
 DAEMON_SRC := $(shell find src/daemon -name "*.c")
 

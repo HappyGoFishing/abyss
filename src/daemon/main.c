@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <stddef.h>
 #include "constant_defines.h"
-#include "../shared/util.h"
+#include "../vendor/util.h"
 #include "service.h"
 
 static int running = 0;
