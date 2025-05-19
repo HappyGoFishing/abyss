@@ -1,5 +1,3 @@
-#include "service.h"
-
 #include <assert.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -15,7 +13,8 @@
 #include <syslog.h>
 #include <errno.h>
 
-#include "../vendor/util.h"
+#include "daemon.h"
+
 
 char ** argv_from_args_string(const char *args_str) {
     if (args_str == NULL) {

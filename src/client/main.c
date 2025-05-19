@@ -5,28 +5,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
-#include "../vendor/util.h"
-
-#define SOCKET_PATH "/tmp/abyss.sock"
-#define BUFFER_SIZE 1024
-
-int setup_socket() {
-    int sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd == -1) {
-        perror("socket");
-        return -1;
-    }
-    struct sockaddr_un addr;
-    memset(&addr, 0, sizeof(struct sockaddr_un));
-    addr.sun_family = AF_UNIX;
-    strcpy(addr.sun_path, SOCKET_PATH);
-
-    if (connect(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
-        perror("connect");
-        return -1;
-    }
-    return sockfd;
-}
+#include "client.h"
 
 int main(int argc, char **argv) {
     if (argc <= 1) {
@@ -49,7 +28,7 @@ int main(int argc, char **argv) {
 
     strip_whitespace(buffer);
 
-    if (send_message(sockfd, buffer) != 0)
+    if (send_socket(sockfd, buffer) != 0)
         exit(EXIT_FAILURE);
     close(sockfd);
     return 0;

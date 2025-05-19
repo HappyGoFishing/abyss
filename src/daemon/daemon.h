@@ -1,9 +1,27 @@
-#pragma once
 #include <stdbool.h>
 #include <fcntl.h>
 #include <stddef.h>
 
-#include "constant_defines.h"
+#define SOCKET_PATH "/tmp/abyss.sock"
+#define BUFFER_SIZE 1024
+#define MAX_COMMAND_LIST_SIZE 2
+#define SERVICE_AUTOSTART_LIST_FILE "./service_configs/autostart.txt"
+#define MAX_AUTOSTART_SERVICES 32
+#define SERVICE_CONFIG_DIR_PATH "./service_configs"
+#define MAX_PATH_LENGTH 1024
+#define MAX_SERVICE_ARRAY_SIZE 128 
+#define MAX_SERVICE_COMMAND_LENGTH 128
+#define MAX_SERVICE_ARGS_LENGTH 512
+#define MAX_SERVICE_NAME_LENGTH 64
+#define MAX_ARGS MAX_SERVICE_ARGS_LENGTH / 2 
+
+
+int send_socket(int sock_fd, const char* msg);
+ssize_t recv_socket(int sock_fd, char* response_buffer, size_t max_len);
+
+void log_message(int priority, const char *format, ...);
+void log_crash_message(const char *format, ...);
+
 
 // result codes returned from functions to make error checking less arcane
 #define RESULT_SERVICE_NOT_IN_ARRAY -1
@@ -25,6 +43,8 @@ struct ServiceArray {
     size_t size;
 };
 
+
+
 int find_service_index_by_name(struct ServiceArray *sa, const char *service_name);
 
 int add_service_to_array(struct ServiceArray *sa, struct Service service);
@@ -36,3 +56,9 @@ struct Service * read_service_toml_file(const char* dirname, const char* filenam
 void start_service(struct Service *service, int *child_pipeds);
 
 int stop_service(const char *service_name, struct ServiceArray *sa);
+
+
+
+
+
+

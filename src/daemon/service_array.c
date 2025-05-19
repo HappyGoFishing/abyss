@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "service.h"
-#include "constant_defines.h"
+#include "daemon.h"
 
 int find_service_index_by_name(struct ServiceArray *sa, const char *service_name) {
     for (size_t i = 0; i < sa->size; i++) {

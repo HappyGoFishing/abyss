@@ -13,9 +13,7 @@
 #include <syslog.h>
 #include <errno.h>
 #include <stddef.h>
-#include "constant_defines.h"
-#include "../vendor/util.h"
-#include "service.h"
+#include "daemon.h"
 
 static int running = 0;
 
@@ -172,7 +170,7 @@ int main(void) {
             }
             
             char buffer[BUFFER_SIZE] = "";
-            receive_message(fd_client, buffer, BUFFER_SIZE);
+            recv_socket(fd_client, buffer, BUFFER_SIZE);
             
             char command_list[MAX_COMMAND_LIST_SIZE][BUFFER_SIZE];
             for (int i = 0; i < MAX_COMMAND_LIST_SIZE; i++) {
