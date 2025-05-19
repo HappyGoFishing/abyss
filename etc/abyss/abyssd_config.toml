@@ -1,0 +1,2 @@
+[abyssd]
+socket_path = "/tmp/abyss.sock"
