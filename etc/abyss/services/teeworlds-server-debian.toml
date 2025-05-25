@@ -1,3 +1,6 @@
 [program]
 command = "/usr/games/teeworlds-server"
 args = "--host localhost"
+
+[environment]
+#working_dir = "/tmp"

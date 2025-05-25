@@ -1,4 +1,0 @@
-[program]
-command = "/usr/bin/teeworlds_srv"
-args = "--host localhost"
-working_directory = "/tmp/"

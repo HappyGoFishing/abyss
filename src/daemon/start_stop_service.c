@@ -69,9 +69,21 @@ void start_service(struct Service *service, int *child_pipefds) {
         argv = argv_from_args_string(service->args);
         if (argv == NULL) {
             log_message(LOG_ERR, "error: couldnt start service %s malformed argv", service->name);
-            return;
+            exit(EXIT_FAILURE);
         }
+
         argv[0] = service->command;
+
+        if (service->working_dir[0] != '\0') {
+            if (chdir(service->working_dir) != 0) {
+                log_message(LOG_ERR, "error: chdir failed to %s: %s", service->working_dir, strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+        } else {
+            log_message(LOG_INFO, "service %s did not specify a working_directory, falling back to parent's", service->name);
+        }
+
+        printf("%s\n", service->working_dir);
         execve(service->command, argv, NULL);
         log_message(LOG_ERR, "error: execve %s", strerror(errno));
 

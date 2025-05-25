@@ -18,6 +18,7 @@
 static int running = 0;
 
 void signal_handler(int sig) { 
+    
     switch (sig) {
         case SIGINT:
             running = 0;
@@ -196,16 +197,21 @@ int main(void) {
                 stop_service(command_list[1], &sa);
                 remove_service_from_array(&sa, command_list[1]);
             }
+            // this is just for debugging there will be a proper implementation that communicates with abyssctl eventually.
             if (!strcmp(command_list[0], "service-list-running")) {
                 log_message(LOG_INFO, "active services (%zu): \n", sa.size);
                 for (size_t i = 0; i < sa.size; i++) {
                     log_message(LOG_INFO, "%li: %s\n", i + 1,  sa.array[i].name);
                 }
             }
+            
+            if (!strcmp(command_list[0], "test-daemon-to-client-msg")) {
+                dprintf(fd_client, "hello world from daemon!\n");
+            }
             close(fd_client);
         }
     }
-
+    
     log_message(LOG_INFO, "abyssd stopping, goodbye. (unlinking %s)", SOCKET_PATH);
     unlink(SOCKET_PATH);
     closelog();

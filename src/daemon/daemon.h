@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <stddef.h>
+#include <sys/types.h>
 
 #define SOCKET_PATH "/tmp/abyss.sock"
 #define BUFFER_SIZE 1024
@@ -34,7 +35,7 @@ struct Service {
     char command[MAX_SERVICE_COMMAND_LENGTH];
     char args[MAX_SERVICE_ARGS_LENGTH];
     char name[MAX_SERVICE_NAME_LENGTH];
-    char working_directory[MAX_PATH_LENGTH];
+    char working_dir[MAX_PATH_LENGTH];
     pid_t pid; 
 };
 

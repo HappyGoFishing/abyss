@@ -13,7 +13,7 @@ struct Service *read_service_toml_file(const char *dirname, const char *filename
     
     size_t dirname_len = strlen(dirname);
     size_t filename_len = strlen(filename);
-
+    // 6 because ".toml/\0" = 6 chars
     if (dirname_len + filename_len + 6 >= MAX_PATH_LENGTH) {
         log_message(LOG_ERR, "error: path to toml larger than %i", MAX_PATH_LENGTH);
         return NULL;
@@ -45,7 +45,7 @@ struct Service *read_service_toml_file(const char *dirname, const char *filename
         log_message(LOG_ERR, "%s", errbuf);
         return NULL;
     }
-
+    // [program] table
     toml_table_t *program = toml_table_in(toml, "program");
     if (!program) {
         log_message(LOG_ERR, "could not find table [program] in %s", path);
@@ -63,7 +63,16 @@ struct Service *read_service_toml_file(const char *dirname, const char *filename
         log_message(LOG_ERR, "could not find string args in %s", path);
         goto cleanup_command;
     }
+    // [environment] table
+    toml_table_t *environment = toml_table_in(toml, "environment");
+    if (!environment) {
+        log_message(LOG_ERR, "could not find table [environment] in %s", path);
+        goto cleanup_command;
+    }
 
+    // we dont error check this because if it fails it doesnt matter, (more info below).
+    toml_datum_t working_dir = toml_string_in(environment, "working_dir");
+    
     struct Service *service = malloc(sizeof(struct Service));
     if (!service) {
         log_message(LOG_ERR, "failed to allocate memory for service");
@@ -76,9 +85,19 @@ struct Service *read_service_toml_file(const char *dirname, const char *filename
     strncpy(service->args, args.u.s, sizeof(service->args) - 1);
     service->args[sizeof(service->args) - 1] = '\0';
 
+    /* if working_dir does not exist in service config we set service->working_dir[0] to '\0'
+       to indicate to start_service() to skip calling chdir before execve */
+    if (!working_dir.ok) {
+        service->working_dir[0] = '\0';
+    } else {
+        strncpy(service->working_dir, working_dir.u.s, sizeof(service->working_dir) -1);
+        service->working_dir[sizeof(service->working_dir) -1] = '\0';
+    }
     free(command.u.s);
     free(args.u.s);
+    free(working_dir.u.s);
     toml_free(toml);
+
     return service;
 
 cleanup_args:
