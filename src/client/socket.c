@@ -17,7 +17,6 @@ int setup_socket() {
     strcpy(addr.sun_path, SOCKET_PATH);
 
     if (connect(sockfd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) == -1) {
-        perror("connect");
         return -1;
     }
     return sockfd;

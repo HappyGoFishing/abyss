@@ -15,8 +15,8 @@ int main(int argc, char **argv) {
 
     int sockfd = setup_socket();
     if (sockfd == -1) {
-        fprintf(stderr, "failed to connect socket %s\n", SOCKET_PATH);
-        fprintf(stderr, "is the abyssd daemon running?\n");
+        fprintf(stderr, "failed to establish connection with socket %s\n", SOCKET_PATH);
+        fprintf(stderr, "is the daemon running? if so check that the daemon and client both agree on the socket path\n");
         exit(1);
     }
 
@@ -32,8 +32,6 @@ int main(int argc, char **argv) {
     if (send_socket(sockfd, buffer) != 0)
         exit(EXIT_FAILURE);
 
-
-    
     ssize_t n = read(sockfd, buffer, sizeof(buffer) - 1);
     if (n < 0) {
         perror("read");
