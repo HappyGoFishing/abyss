@@ -168,6 +168,7 @@ int main(void) {
                 strcpy(service->name, command_list[1]);
                 
                 if (find_service_index_by_name(&sa, service->name) != RESULT_SERVICE_NOT_IN_ARRAY) {
+                    dprintf(fd_client, "not starting service: %s is already running\n", service->name);
                     log_message(LOG_INFO, "not starting service: %s is already running", service->name);
                     close(fd_client);
                     continue;
@@ -182,18 +183,22 @@ int main(void) {
                 
                 start_service(service, child_pipefds);
                 if (add_service_to_array(&sa, *service) == RESULT_SERVICE_ARRAY_REACHED_LIMIT) {
-                    log_message(LOG_ERR, "error: couldn't start service %s because max service number %i has been reached", service->name, MAX_SERVICE_ARRAY_SIZE);
+                    dprintf(fd_client, "not starting service: %s because max service number %i has been reached\n", service->name, MAX_SERVICE_ARRAY_SIZE);
+                    log_message(LOG_ERR, "not starting service: %s because max service number %i has been reached", service->name, MAX_SERVICE_ARRAY_SIZE);
                     close(fd_client);
                     continue;
                 }
+                dprintf(fd_client, "starting service: %s\n", service->name);
             }
     
             if (!strcmp(command_list[0], "service-stop")) {
                 if (find_service_index_by_name(&sa, command_list[1]) == RESULT_SERVICE_NOT_IN_ARRAY) {
-                    log_message(LOG_INFO, "couldn't stop service: %s service was not running", command_list[1]);
+                    dprintf(fd_client, "not stopping service: %s service was not running\n", command_list[1]);
+                    log_message(LOG_INFO, "not stopping service: %s service was not running", command_list[1]);
                     close(fd_client);
                     continue;
                 }
+                dprintf(fd_client, "stopping service: %s\n", command_list[1]);
                 stop_service(command_list[1], &sa);
                 remove_service_from_array(&sa, command_list[1]);
             }

@@ -11,4 +11,4 @@ This project exists because I wanted to improve at C and learn UNIX systems prog
 
 
 ## Features TODO
-- setting working directory for service
+- dependency management like systemd where services can provide states and require to be launched before or after
