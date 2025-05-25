@@ -136,8 +136,9 @@ int main(void) {
 
             struct sockaddr_un client_addr;
             socklen_t client_addr_len = sizeof(client_addr);
-            int fd_client;
-            if ((fd_client = accept(fd_sock, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
+
+            int fd_client = accept(fd_sock, (struct sockaddr *)&client_addr, &client_addr_len); 
+            if (fd_client == -1) {
                 log_message(LOG_ERR, "error: accept %s", strerror(errno));
                 continue;
             }
@@ -195,17 +196,19 @@ int main(void) {
                 stop_service(command_list[1], &sa);
                 remove_service_from_array(&sa, command_list[1]);
             }
-            /*if (!strcmp(command_list[0], "service-list-running")) {
+            if (!strcmp(command_list[0], "service-list-running")) {
                 log_message(LOG_INFO, "active services (%zu): \n", sa.size);
                 for (size_t i = 0; i < sa.size; i++) {
-                    log_info("%li: %s\n", i + 1,  sa.array[i].name);
+                    log_message(LOG_INFO, "%li: %s\n", i + 1,  sa.array[i].name);
                 }
-            }*/
+            }
             close(fd_client);
         }
     }
+
     log_message(LOG_INFO, "abyssd stopping, goodbye. (unlinking %s)", SOCKET_PATH);
     unlink(SOCKET_PATH);
     closelog();
+    
     return 0;
 }

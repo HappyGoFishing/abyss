@@ -1,5 +1,6 @@
 # The Abyss service manager.
 Abyss is a service management daemon for Linux and other Unix systems written in the C programming language.
+This project exists because I wanted to improve at C and learn UNIX systems programming. 
 ## dependencies
 [tomlc99](https://github.com/cktan/tomlc99) is [vendored](src/shared/tomlc99) and statically linked.
 
@@ -8,5 +9,6 @@ Abyss is a service management daemon for Linux and other Unix systems written in
 - Service configs declared in TOML files
 - very few dependencies
 
-## Disclaimer
-This project exists because I wanted to improve at C and learn UNIX systems programming. This is amateur software written by a hobbyist programmer, do not blindly trust this codebase.
+
+## Features TODO
+- setting working directory for service

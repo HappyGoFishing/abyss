@@ -23,7 +23,7 @@ void log_message(int priority, const char *format, ...);
 void log_crash_message(const char *format, ...);
 void strip_whitespace(char *str);
 
-// result codes returned from functions to make error checking less arcane
+// result codes returned from ServiceArray functions to make error checking less arcane
 #define RESULT_SERVICE_NOT_IN_ARRAY -1
 #define RESULT_SERVICE_ARRAY_REACHED_LIMIT -2
 #define RESULT_SERVICE_ALREADY_IN_ARRAY -3
