@@ -13,33 +13,10 @@
 #include <syslog.h>
 #include <errno.h>
 
-#include "daemon.h"
-
-
-char ** argv_from_args_string(const char *args_str) {
-    if (args_str == NULL) {
-        return NULL;
-    }
-    char **argv = (char **)malloc((MAX_SERVICE_ARGS_LENGTH + 1) * sizeof(char *));
-    if (argv == NULL) {
-        return NULL;
-    }
-    char arg_str_copy[MAX_SERVICE_ARGS_LENGTH];
-    strncpy(arg_str_copy, args_str, sizeof(arg_str_copy));
-    arg_str_copy[sizeof(arg_str_copy) - 1] = '\0';
-    
-    char *token;
-    int argc = 1;
-    token = strtok(arg_str_copy, " ");
-    while (token != NULL && argc <= MAX_ARGS) {
-        argv[argc] = (char *)malloc(strlen(token) + 1);
-        strcpy(argv[argc], token);
-        argc++;
-        token = strtok(NULL, " ");
-    }
-    argv[argc] = NULL;
-    return argv;
-}
+#include "defines.h"
+#include "util.h"
+#include "service.h"
+#include "dynamic_service_array.h"
 
 
 void start_service(struct Service *service, int *child_pipefds) {

@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "daemon.h"
-
+#include "defines.h"
+#include "service.h"
+#include "dynamic_service_array.h"
+#include "../vendor/stb/stb_ds.h"
 int find_service_index_by_name(struct ServiceArray *sa, const char *service_name) {
     for (size_t i = 0; i < sa->size; i++) {
         if (!strcmp(service_name, sa->array[i].name)) {

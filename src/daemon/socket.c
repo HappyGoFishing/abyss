@@ -4,8 +4,9 @@
 #include <syslog.h>
 #include <stdio.h>
 #include <unistd.h>
-#include "daemon.h"
 
+#include "defines.h"
+#include "util.h"
 
 int setup_socket() {
     unlink(SOCKET_PATH);

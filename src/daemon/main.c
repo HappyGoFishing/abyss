@@ -13,7 +13,16 @@
 #include <syslog.h>
 #include <errno.h>
 #include <stddef.h>
-#include "daemon.h"
+
+#include "socket.h"
+#include "read_toml.h"
+#include "service.h"
+#include "dynamic_service_array.h"
+#include "util.h"
+#include "service_management.h"
+
+#define STB_DS_IMPLEMENTATION
+#include "../vendor/stb/stb_ds.h"
 
 static int running = 0;
 
@@ -32,42 +41,11 @@ void signal_handler(int sig) {
 void start_autostart_services(struct ServiceArray* sa) {
     log_message(LOG_INFO, "attempting to start autostart services");
     
-    FILE *fp = fopen(SERVICE_AUTOSTART_LIST_FILE, "rb");
-    if (fp == NULL) {
-        log_message(LOG_ERR, "error: couldn't open %s", SERVICE_AUTOSTART_LIST_FILE);
-        return;
-    }
-    
-    if (fseek(fp, 0, SEEK_END) != 0) {
-        log_message(LOG_ERR, "error: fseek %s", strerror(errno));
-        fclose(fp);
-        return;
-    }
-
-    long fsize = ftell(fp);
-    
-    if (fseek(fp, 0, SEEK_SET) != 0) {
-        log_message(LOG_ERR, "error: fseek %s", strerror(errno));
-        fclose(fp);
-        return;
-    }
-    
-    char *rdbuf = malloc(fsize + 1);
+    char* rdbuf = read_file_to_string(SERVICE_AUTOSTART_LIST_FILE);
     if (rdbuf == NULL) {
-        log_message(LOG_ERR, "error: malloc %s", strerror(errno));
-        fclose(fp);
+        log_message("error: couldn't read autostart list file %s", SERVICE_AUTOSTART_LIST_FILE);
         return;
     }
-
-    if (fread(rdbuf, 1, fsize, fp) != (size_t) fsize) {
-        log_message(LOG_ERR, "error: fread %s (%s)", strerror(errno), SERVICE_AUTOSTART_LIST_FILE);
-        free(rdbuf);
-        fclose(fp);
-        return;
-    }
-    fclose(fp);
-
-    rdbuf[fsize] = '\0';
     char *name_token;
     char *save_ptr = rdbuf;
 
@@ -94,7 +72,7 @@ void start_autostart_services(struct ServiceArray* sa) {
             free(service);
             continue;
         }
-
+        
         start_service(service, child_pipefds);
         if (add_service_to_array(sa, *service) == RESULT_SERVICE_ARRAY_REACHED_LIMIT) {
             log_crash_message("service array somehow at max size during autostart phase");
@@ -105,8 +83,8 @@ void start_autostart_services(struct ServiceArray* sa) {
 }
 
 int main(void) {
-    signal(SIGINT, signal_handler);
     
+    signal(SIGINT, signal_handler);
     openlog("abyssd", LOG_PID | LOG_CONS, LOG_DAEMON);
     
     int fd_sock = setup_socket();
