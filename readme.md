@@ -12,3 +12,4 @@ This project exists because I wanted to improve at C and learn UNIX systems prog
 
 ## Features TODO
 - dependency management like systemd where services can provide states and require to be launched before or after
+- migrate from inhouse dynamic array to stb_ds
