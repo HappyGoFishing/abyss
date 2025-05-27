@@ -43,7 +43,7 @@ void start_autostart_services(struct ServiceArray* sa) {
     
     char* rdbuf = read_file_to_string(SERVICE_AUTOSTART_LIST_FILE);
     if (rdbuf == NULL) {
-        log_message("error: couldn't read autostart list file %s", SERVICE_AUTOSTART_LIST_FILE);
+        log_message(LOG_ERR, "error: couldn't read autostart list file %s", SERVICE_AUTOSTART_LIST_FILE);
         return;
     }
     char *name_token;
@@ -66,14 +66,14 @@ void start_autostart_services(struct ServiceArray* sa) {
         }
 
         log_message(LOG_INFO, "starting service: %s command=%s args=%s", service->name, service->command, service->args);
-        int child_pipefds[2]; // used by child to send pid back to parent after fork
-        if (pipe(child_pipefds) == -1) {
+        int child_pipes[2]; // used by child to send pid back to parent after fork
+        if (pipe(child_pipes) == -1) {
             log_message(LOG_ERR, "error: pipe %s", strerror(errno));
             free(service);
             continue;
         }
         
-        start_service(service, child_pipefds);
+        start_service(service, child_pipes);
         if (add_service_to_array(sa, *service) == RESULT_SERVICE_ARRAY_REACHED_LIMIT) {
             log_crash_message("service array somehow at max size during autostart phase");
         }
@@ -83,7 +83,6 @@ void start_autostart_services(struct ServiceArray* sa) {
 }
 
 int main(void) {
-    
     signal(SIGINT, signal_handler);
     openlog("abyssd", LOG_PID | LOG_CONS, LOG_DAEMON);
     
@@ -99,8 +98,8 @@ int main(void) {
     fds[0].events = POLLIN;
 
     running = 1;
-
-    struct ServiceArray sa = { .size = 0 }; // the services currently active
+    
+    struct ServiceArray sa = { .size = 0 }; // the array to hold the active Services
     
     start_autostart_services(&sa);
 
@@ -112,7 +111,6 @@ int main(void) {
         }
 
         if (fds[0].revents & POLLIN) {
-
             struct sockaddr_un client_addr;
             socklen_t client_addr_len = sizeof(client_addr);
 

@@ -19,7 +19,7 @@
 #include "dynamic_service_array.h"
 
 
-void start_service(struct Service *service, int *child_pipefds) {
+void start_service(struct Service *service, int *child_pipes) {
     if (service == NULL) {
         log_message(LOG_ERR, "error: failed to start a service, service pointer null");
         return;
@@ -39,9 +39,9 @@ void start_service(struct Service *service, int *child_pipefds) {
         
         close(fd_devnull);
 
-        close(child_pipefds[0]);
-        write(child_pipefds[1], &service->pid, sizeof(service->pid));
-        close(child_pipefds[1]);
+        close(child_pipes[0]);
+        write(child_pipes[1], &service->pid, sizeof(service->pid));
+        close(child_pipes[1]);
 
         argv = argv_from_args_string(service->args);
         if (argv == NULL) {
@@ -69,9 +69,9 @@ void start_service(struct Service *service, int *child_pipefds) {
         log_message(LOG_ERR, "error: fork %s", strerror(errno));
 
     } else {
-        close(child_pipefds[1]);
-        read(child_pipefds[0], &service->pid, sizeof(service->pid));
-        close(child_pipefds[0]);
+        close(child_pipes[1]);
+        read(child_pipes[0], &service->pid, sizeof(service->pid));
+        close(child_pipes[0]);
         
         // argv causes memory leak, eventually should fix it.
     }

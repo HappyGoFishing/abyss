@@ -65,14 +65,14 @@ struct Service *read_service_toml_file(const char *dirname, const char *filename
         goto cleanup_command;
     }
     // [environment] table
-    toml_table_t *environment = toml_table_in(toml, "environment");
-    if (!environment) {
-        log_message(LOG_ERR, "could not find table [environment] in %s", path);
+    toml_table_t *paths = toml_table_in(toml, "paths");
+    if (!paths) {
+        log_message(LOG_ERR, "could not find table [paths] in %s", path);
         goto cleanup_command;
     }
 
     // we dont error check this because if it fails it doesnt matter, (more info below).
-    toml_datum_t working_dir = toml_string_in(environment, "working_dir");
+    toml_datum_t working_dir = toml_string_in(paths, "working_dir");
     
     struct Service *service = malloc(sizeof(struct Service));
     if (!service) {

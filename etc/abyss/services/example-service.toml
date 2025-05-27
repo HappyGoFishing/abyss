@@ -1,0 +1,9 @@
+[program]
+command = "/usr/bin/example"
+args = "--example --example-arg"
+
+[paths]
+working_dir = "/tmp/example"
+stdout_redirect = "/dev/null"
+stdin_redirect = "/dev/null"
+stderr_redirect = "/dev/null"

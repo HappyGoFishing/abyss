@@ -33,7 +33,7 @@ void log_crash_message(const char *format, ...) {
 #endif
 
     va_end(args);
-    exit(1);
+    exit(EXIT_FAILURE);
 }
 
 char * read_file_to_string(const char * fname) {
@@ -75,6 +75,7 @@ char * read_file_to_string(const char * fname) {
     return rdbuf;
 }
 
+
 char ** argv_from_args_string(const char *args_str) {
     if (args_str == NULL) {
         return NULL;
@@ -104,7 +105,9 @@ int count_substrings(const char *str) {
     int count = 0;
     const char *p = str;
     while(*p) {
-        while (*p  == ' ') p++;
+        while (*p  == ' ') {
+            p++;
+        }
         if (*p) {
             count++;
         }
@@ -116,9 +119,11 @@ int count_substrings(const char *str) {
 }
 
 void strip_whitespace(char *str) {
-    if (str == NULL)
+    if (str == NULL) {
         return;
+    }
     size_t len = strlen(str);
+
     while (len > 0 && (str[len - 1] == ' ' || str[len - 1] == '\n')) {
         str[--len] = '\0';
     }
