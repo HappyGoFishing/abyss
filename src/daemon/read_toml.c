@@ -6,6 +6,7 @@
 #include "defines.h"
 #include "util.h"
 #include "service.h"
+
 struct Service *read_service_toml_file(const char *dirname, const char *filename) {
     if (!dirname || !filename) {
         log_message(LOG_ERR, "filename or dirname is NULL");

@@ -27,7 +27,6 @@
 static int running = 0;
 
 void signal_handler(int sig) { 
-    
     switch (sig) {
         case SIGINT:
             running = 0;
@@ -50,7 +49,6 @@ void start_autostart_services(struct ServiceArray* sa) {
     char *save_ptr = rdbuf;
 
     while ((name_token = strtok_r(save_ptr, "\n", &save_ptr)) != NULL) {
-        
         struct Service *service = read_service_toml_file(SERVICES_DIR_PATH, name_token);
         if (service == NULL) {
             log_message(LOG_ERR, "error: couldn't read service config for %s", name_token);
@@ -100,8 +98,10 @@ int main(void) {
     running = 1;
     
     struct ServiceArray sa = { .size = 0 }; // the array to hold the active Services
+
+    struct Service *services = NULL;
     
-    start_autostart_services(&sa);
+    //start_autostart_services(&sa);
 
     while (running) {
         int poll_ret = poll(fds, 1, -1);
